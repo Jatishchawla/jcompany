@@ -1,0 +1,70 @@
+{%extends "base3.html"%} {%block content%}
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-md-10">
+                <h2>Home Page Below</h2>
+            </div>
+            <div class="col-md-2 text-right">
+                <a href="#" class="btn btn-outline-primary">Profile</a>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Looking For?</h3>
+            </div>
+            <div class="card-body">
+                <div class="row"  style="overflow-y: hidden; flex-wrap: nowrap; overflow-x: scroll;">
+                    {% for service, details in services.items() %}
+                    <div class="col-md-3 mb-3">
+                        <div class="service-card" style="height: 300px">
+                            {{ service }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Service History</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Service Name</th>
+                                <th>Professional Name</th>
+                                <th>Phone no.</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for index, row in service_history.iterrows() %}
+                            <tr>
+                                <td>{{ index + 1 }}</td>
+                                <td>{{ row['Service Name'] }}</td>
+                                <td>{{ row['Professional Name'] }}</td>
+                                <td>{{ row['Phone no.'] }}</td>
+                                <td>
+                                    {% if row['Status'] == 'Closed' %}
+                                        <span class="badge badge-success">Closed</span>
+                                    {% elif row['Status'] == 'Requested' %}
+                                        <span class="badge badge-warning">Requested</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ row['Status'] }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{%endblock%}

@@ -1,0 +1,13 @@
+.bg-custom-blue {
+    background-color: #007bff;
+}
+.service-card {
+      height: 100px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 2px solid #007bff;
+      border-radius: 10px;
+      font-weight: bold;
+      color: #007bff;
+  }
