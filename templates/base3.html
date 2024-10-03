@@ -48,12 +48,31 @@
     </header>
     <!-- header end -->
 
-    {%block content1%} {%endblock%}
-    <!-- footer -->
-    <div class="container mt-5" style="width: 100vw;">
-      <br /><br />
-      {%block content%} {%endblock%}
+   
 
+    <div class="container mt-5" style="max-width: 75vw !important;">
+      <br /><br />
+
+       <!-- alert start -->
+       {% with messages = get_flashed_messages() %}
+       {% if messages %}
+         {% for message in messages %}
+           <div class="alert alert-success alert-dismissible fade show alert-fixed" role="alert">
+             {{ message }}
+             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+             </button>
+           </div>
+         {% endfor %}
+       {% endif %}
+     {% endwith %}
+<!-- alert end -->
+
+      {%block content%} 
+      
+      {%endblock%}
+      
+      <!-- footer -->
       <footer class="pt-4 my-md-5 pt-md-5 border-top">
         <div class="row">
           <div class="col-12 col-md">

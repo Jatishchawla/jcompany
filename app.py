@@ -3,11 +3,14 @@ from flask import session
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime 
 import pandas as pd
+import uuid
+
 
 
 app = Flask(__name__)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sampledb2.sqlite3"
+app.config['SECRET_KEY']="key"
 db = SQLAlchemy(app)
 
 app.app_context().push()
@@ -15,7 +18,7 @@ app.app_context().push()
 
 class User(db.Model):
     __tablename__= "User"
-    id           = db.Column(db.Integer, primary_key=True)
+    uuid           = db.Column(db.String() , primary_key=True)
     email        = db.Column(db.String() , nullable =False , unique = True )
     password     = db.Column(db.String(), nullable=False)
     firstname    = db.Column(db.String(), nullable=False)
@@ -30,12 +33,14 @@ class User(db.Model):
 
 class Employee(db.Model):
     __tablename__  = "Employee"
-    id             = db.Column(db.Integer, primary_key=True)
+    email          = db.Column(db.String() , nullable =False , unique = True )
+    uuid           = db.Column(db.String(), primary_key=True)
     salary         = db.Column(db.Integer)
     experience     = db.Column(db.Integer, nullable=False)
-    skills         = db.Column(db.String())
+    skill          = db.Column(db.String())
     total_bookings = db.Column(db.Integer, nullable=False)
     total_rating   = db.Column(db.Integer, nullable=False)
+    avialable      =db.Column(db.Boolean , nullable=False , default = True  )
     created_at     = db.Column(db.Date, nullable=False)
     updated_at     = db.Column(db.Date, nullable=False)
 
@@ -76,15 +81,14 @@ class Package(db.Model):
 with app.app_context():
     db.create_all()
 
-
 @app.route("/" , methods= ["GET"])
 def home():
     return render_template("index.html")
 
-
 # for customer
 @app.route("/register" , methods =["GET",  "POST"])
 def register():
+    
     if (request.method == "POST"):
         
         # print(request.form)
@@ -98,10 +102,11 @@ def register():
         person = User.query.filter_by(email=email).first()
         if person:
             if (email == person.email):
-                return "alredy registered email" # add flash msg
+                flash( "Email Id Already in Use, please sign in" )
+                return redirect(url_for('login'))
         
+        id=uuid.uuid4()
         # db wala code
-        # role_id      =request.form.get("role_id")
         firstname = request.form.get("firstname")
         lastname     =request.form.get("lastname")
         role_id      = 3
@@ -110,38 +115,91 @@ def register():
         phone_number =request.form.get("phonenumber")
         profile_image =request.form.get("profile_image")
         
-
-
-        new_registration = User(email=email , password = password , firstname=firstname, lastname=lastname,
+        new_registration = User(uuid = str(id) ,email=email , password = password , firstname=firstname, lastname=lastname,
                                 address=address , pincode=pincode, phone_number=phone_number,
                                 role_id = 3 , profile_image=profile_image ,created_at=datetime.utcnow(),
                                 updated_at=datetime.utcnow() )
         db.session.add(new_registration)
         db.session.commit()
 
+        
         # person = User.query.filter_by(email=email).first()      ____
         #                                                             |___               
         # session['user'] = person.id                             ____|
 
-        
-        if (role_id == "3" ):
-            return redirect("/login") # REDIRECT TO CUSTOMER LOGIN PAGE !
-        if (role_id == "2"):
-            return "hello service proffessional , yet to make page" # make service proffessional dashboard
-        if (role_id == "1"):
-            return "hello admin , yet to make admin dashboard "  # make admin dashboard page
-    
+        flash( "REGISTERED SUCCESSFULLY !" )
+        return redirect(url_for("login")) # REDIRECT TO LOGIN PAGE !
+       
 
     return render_template("customer_registeration_form.html")
 
 
-# REGISTER SERVICE PROFFESSIONAL ON A NEW PAGE:  proffessional/register
-@app.route("/proffessional/register" , methods=["GET" , "POST"])
-def register3():
+# REGISTER SERVICE professional ON A NEW PAGE:  professional/register
+@app.route("/professional/register" , methods=["GET" , "POST"])
+def professional_register():
     if (request.method == "POST"):
-        #REGISTER THE PROFESSIONAL
-        return "you are registered , once admin verifies you , you can login :)"
-    return render_template("proffessional_registeration_form.html")  # make a seperate register page for employee
+        
+        # print(request.form)
+        email = request.form.get("email")
+        password = request.form.get("password")
+        
+        # Ensure password is not None or empty
+        if not password:
+            flash("Password is required")
+            return redirect("/login")
+        
+        person = User.query.filter_by(email=email).first()
+        if person:
+            if (email == person.email):
+                flash( "Email Id Already in Use, please sign in" )
+                return redirect(url_for('login'))
+        
+        # db wala code
+
+        id = uuid.uuid4()
+
+        # print('Your UUID is: ' + str(myuuid))
+
+        firstname = request.form.get("firstname")
+        lastname     =request.form.get("lastname")
+        role_id      = 2
+        address      =request.form.get("address")
+        pincode      =request.form.get("pincode")
+        phone_number =request.form.get("phonenumber")
+        profile_image =request.form.get("profile_image")
+
+        salary = 0
+        experience = request.form.get("experience")
+        skill=request.form.get("skill")
+        # total_bookings=request.form.get("total_bookings")
+        # =request.form.get("")
+        # =request.form.get("")
+        # =request.form.get("")
+        # total_rating=request.form.get("total_rating")
+
+        new_user_registration = User(uuid=str(id), email=email , password = password , firstname=firstname, lastname=lastname,
+                                address=address , pincode=pincode, phone_number=phone_number,
+                                role_id = 2 , profile_image=profile_image ,created_at=datetime.utcnow(),
+                                updated_at=datetime.utcnow() )
+        
+
+        new_professional_registration= Employee(uuid=str(id), email=email,salary=salary , skill=skill , experience=experience , total_bookings=0 , 
+                                                total_rating=0 ,created_at=datetime.utcnow(), updated_at=datetime.utcnow() 
+                                                )
+        
+        db.session.add(new_professional_registration)
+        db.session.add(new_user_registration)
+        db.session.commit()
+
+        
+        # person = User.query.filter_by(email=email).first()      ____
+        #                                                             |___               
+        # session['user'] = person.id                             ____|
+
+        flash( "REGISTERED SUCCESSFULLY !" )
+        return redirect(url_for("login")) # REDIRECT TO  LOGIN PAGE !
+    
+    return render_template("professional_registeration_form.html")  # make a seperate register page for employee
 
 
 
@@ -174,7 +232,7 @@ def login():
                     return redirect("/user/home")   ## REDIRECT TO COSTUMER HOME PAGE !
                     
                 if (person.role_id == 2):
-                    return "hello service proffessional , yet to make page" # make service proffessional dashboard
+                    return "hello service professional , yet to make page" # make service professional dashboard
                 if (person.role_id == 1):
                     return "hello admin , yet to make admin dashboard "  # make admin dashboard page
             else:
@@ -184,7 +242,7 @@ def login():
             # return redirect("/register")
     return render_template("login.html")
 
-
+#customer dashboard / homepage
 @app.route("/user/home", methods=["GET"])
 def user_home():
     # Dummy data for services

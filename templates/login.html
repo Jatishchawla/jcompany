@@ -1,4 +1,7 @@
 {%extends "base3.html"%} {%block content%}
+
+
+
 <div id="signin" class="text-center">
   <form class="form-signin" action="/login" method="post">
 
@@ -37,11 +40,12 @@
         </label>
       </div> -->
     
-    <a href="/register"> not  register?</a>
-
-    <button class="btn btn-lg btn-primary btn-block" type="submit">
-      Sign in
-    </button>
+      
+      <button class="btn btn-lg btn-primary btn-block" type="submit">
+        Sign in
+      </button>
+      <br/>
+      <a href="/register" style="font-size: medium;"> Not  Registered? SignUp Here</a>
     <p class="mt-5 mb-3 text-muted">&copy; 2024</p>
   </form>
 </div>

@@ -11,3 +11,11 @@
       font-weight: bold;
       color: #007bff;
   }
+
+  .alert-fixed {
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      width: 300px;
+      z-index: 1000;
+  }
