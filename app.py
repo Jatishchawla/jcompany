@@ -4,12 +4,12 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime 
 import pandas as pd
 import uuid
-
+import bcrypt
 
 
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sampledb2.sqlite3"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sampledb1.sqlite3"
 app.config['SECRET_KEY']="key"
 db = SQLAlchemy(app)
 
@@ -29,7 +29,29 @@ class User(db.Model):
     phone_number = db.Column(db.Integer, nullable=False)
     created_at   = db.Column(db.Date, nullable = True)
     updated_at   = db.Column(db.Date , nullable = True)
-    profile_image  = db.Column(db.String() )
+    profile_image= db.Column(db.String() )
+
+    def __init__(self, uuid , email, password, firstname, lastname, address, pincode, role_id, phone_number, created_at, updated_at,  profile_image):
+        self.uuid = uuid
+        self.email = email
+        self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        self.firstname = firstname
+        self.lastname =lastname
+        self.pincode=pincode
+        self.address=address 
+        self.phone_number=phone_number
+        self.role_id = role_id
+        self.profile_image=profile_image 
+        self.created_at = created_at
+        self.updated_at = updated_at
+
+
+
+    def check_password(self , password):
+        return bcrypt.checkpw(password.encode('utf-8'), self.password)
+
+
+
 
 class Employee(db.Model):
     __tablename__  = "Employee"
@@ -40,7 +62,7 @@ class Employee(db.Model):
     skill          = db.Column(db.String())
     total_bookings = db.Column(db.Integer, nullable=False)
     total_rating   = db.Column(db.Integer, nullable=False)
-    avialable      =db.Column(db.Boolean , nullable=False , default = True  )
+    avialable      = db.Column(db.Boolean , nullable=False , default = True  )
     created_at     = db.Column(db.Date, nullable=False)
     updated_at     = db.Column(db.Date, nullable=False)
 
@@ -99,9 +121,9 @@ def register():
         if not password:
             return "Password is required", 400 # add flash msg
         
-        person = User.query.filter_by(email=email).first()
-        if person:
-            if (email == person.email):
+        user = User.query.filter_by(email=email).first()
+        if user:
+            if (email == user.email):
                 flash( "Email Id Already in Use, please sign in" )
                 return redirect(url_for('login'))
         
@@ -123,9 +145,9 @@ def register():
         db.session.commit()
 
         
-        # person = User.query.filter_by(email=email).first()      ____
+        # user = User.query.filter_by(email=email).first()      ____
         #                                                             |___               
-        # session['user'] = person.id                             ____|
+        # session['user'] = user.id                             ____|
 
         flash( "REGISTERED SUCCESSFULLY !" )
         return redirect(url_for("login")) # REDIRECT TO LOGIN PAGE !
@@ -148,9 +170,9 @@ def professional_register():
             flash("Password is required")
             return redirect("/login")
         
-        person = User.query.filter_by(email=email).first()
-        if person:
-            if (email == person.email):
+        user = User.query.filter_by(email=email).first()
+        if user:
+            if (email == user.email):
                 flash( "Email Id Already in Use, please sign in" )
                 return redirect(url_for('login'))
         
@@ -192,9 +214,9 @@ def professional_register():
         db.session.commit()
 
         
-        # person = User.query.filter_by(email=email).first()      ____
+        # user = User.query.filter_by(email=email).first()      ____
         #                                                             |___               
-        # session['user'] = person.id                             ____|
+        # session['user'] = user.id                             ____|
 
         flash( "REGISTERED SUCCESSFULLY !" )
         return redirect(url_for("login")) # REDIRECT TO  LOGIN PAGE !
@@ -208,61 +230,78 @@ def professional_register():
 def login():
     
     if "user" in session:
-        return redirect("/user/home") 
+        return redirect("/user/home" ) 
 
     if (request.method == "POST"):
         email = request.form.get("email")
         password = request.form.get("password")
 
-        person = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(email=email).first()
+
         # if not then register
-        if not person:
-            return  "user not found , please register first"
+        if not user:
+            flash("please create account first")
+            return redirect(url_for("register"))
 
-        
+        if user:
 
-        if person:
+            if (email == user.email and user.check_password(password) ):
 
-            if (email == person.email and password == person.password):
+                # session['user'] = user.id      ---YET TO MAKE SESSION---
+                session['firstname']=user.firstname
+                session['lastname']=user.lastname
+                session['email']=user.email
+                session['role_id']=user.role_id
+                session['signedin']=True
 
-                # session['user'] = person.id      ---YET TO MAKE SESSION---
-                
-
-                if (person.role_id == 3 ):
-                    return redirect("/user/home")   ## REDIRECT TO COSTUMER HOME PAGE !
+                if (user.role_id == 3 ):
+                    return redirect("/user/home" )   ## REDIRECT TO COSTUMER HOME PAGE !
                     
-                if (person.role_id == 2):
+                if (user.role_id == 2):
                     return "hello service professional , yet to make page" # make service professional dashboard
-                if (person.role_id == 1):
+                if (user.role_id == 1):
                     return "hello admin , yet to make admin dashboard "  # make admin dashboard page
             else:
                 return "credentials didnt match"
         else:
-            return "PERSON NOT FOUND"
+            return "user NOT FOUND"
             # return redirect("/register")
     return render_template("login.html")
+
+@app.route("/signout")
+def signout():
+    # session['signedin']= False
+    session.pop('signedin',None )
+    session.pop('firstname', None)  # Remove username from session
+    session.pop("lastname",None)
+    session.pop("role_id",None)
+    session.pop("email",None)
+    flash("You are Signed Out")
+    return redirect('/')
+
 
 #customer dashboard / homepage
 @app.route("/user/home", methods=["GET"])
 def user_home():
-    # Dummy data for services
-    services = {
-        'AC Repair': {'icon': 'fas fa-snowflake'},
-        'Saloon': {'icon': 'fas fa-cut'},
-        'Cleaning': {'icon': 'fas fa-broom'},
-        'Electrician': {'icon': 'fas fa-bolt'},
-        'Plumbing': {'icon': 'fas fa-faucet'}
-    }
-    
-    # Dummy data for service history using pandas DataFrame
-    service_history = pd.DataFrame({
-        'Service Name': ['AC Repair', 'Cleaning', 'Electrician', 'Plumbing', 'Saloon'],
-        'Professional Name': ['John Doe', 'Jane Smith', 'Bob Johnson', 'Alice Brown', 'Charlie Davis'],
-        'Phone no.': ['123-456-7890', '234-567-8901', '345-678-9012', '456-789-0123', '567-890-1234'],
-        'Status': ['Closed', 'Requested', 'In Progress', 'Closed', 'Scheduled']
-    })
-    
-    return render_template("user_dashboard.html", services=services, service_history=service_history)
+    if session["firstname"]:
+        # Dummy data for services
+        services = {
+            'AC Repair': {'icon': 'fas fa-snowflake'},
+            'Saloon': {'icon': 'fas fa-cut'},
+            'Cleaning': {'icon': 'fas fa-broom'},
+            'Electrician': {'icon': 'fas fa-bolt'},
+            'Plumbing': {'icon': 'fas fa-faucet'}
+        }
+        
+        # Dummy data for service history using pandas DataFrame
+        service_history = pd.DataFrame({
+            'Service Name': ['AC Repair', 'Cleaning', 'Electrician', 'Plumbing', 'Saloon'],
+            'Professional Name': ['John Doe', 'Jane Smith', 'Bob Johnson', 'Alice Brown', 'Charlie Davis'],
+            'Phone no.': ['123-456-7890', '234-567-8901', '345-678-9012', '456-789-0123', '567-890-1234'],
+            'Status': ['Closed', 'Requested', 'In Progress', 'Closed', 'Scheduled']
+        })
+        
+        return render_template("user_dashboard.html", services=services, service_history=service_history)
 
 @app.route("/user/home/bookings" , methods=["GET"])
 def bookings():

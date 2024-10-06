@@ -40,11 +40,31 @@
         <nav class="my-2 my-md-0 mr-md-3">
           <a class="p-2 text-dark" href="/">Home</a>
           <a class="p-2 text-dark" href="#services">Services</a>
-          <a class="p-2 text-dark" href="#support">Support</a>
+          <a class="p-2 text-dark" href="#">Support</a>
           <a class="p-2 text-dark" href="#subscription">Subscription</a>
+          {%if not session['signedin']%}
+          <a class="btn btn-outline-primary" style="margin-right: 5px;" href="/login">Sign in</a>
+          {%endif%} 
+          {%if session['signedin']%}   
+          <a class="p-2 text-dark" href="/user/summary">Summary</a>
         </nav>
-        <a class="btn btn-outline-primary" href="/login">Sign in</a>
+        <!-- ppProfile Dropdown (Right) -->
+        <div class="dropdown">
+          <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+             
+              <img src= "https://media.licdn.com/dms/image/v2/D5603AQEIypDKPKLtYA/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1725212034240?e=1733356800&v=beta&t=YvQ8PsUro9THgItDHbiAzcBI6LfenNQVPgCz4P2PA9o" class="rounded-circle" alt="Profile" width="30">
+            
+            </a>
+          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
+              <a class="dropdown-item" href="#">View Profile</a>
+              <a class="dropdown-item" href="#">Edit Profile</a>
+              <a class="dropdown-item" href="#">My Bookings</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="/signout">Sign out</a>
+          </div>
+          {%endif%}
       </div>
+
     </header>
     <!-- header end -->
 
@@ -128,9 +148,14 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+    
+    
     <script>
+
       Holder.addTheme("thumb", {
         bg: "#55595c",
         fg: "#eceeef",
