@@ -119,13 +119,13 @@ def register():
         
         # Ensure password is not None or empty
         if not password:
-            return "Password is required", 400 # add flash msg
+            flash("Password Required")
+            return redirect(url_for('register'))
         
         user = User.query.filter_by(email=email).first()
         if user:
-            if (email == user.email):
-                flash( "Email Id Already in Use, please sign in" )
-                return redirect(url_for('login'))
+            flash( "Email Id Already in Use, please sign in")
+            return redirect(url_for('login'))
         
         id=uuid.uuid4()
         # db wala code
@@ -156,7 +156,7 @@ def register():
     return render_template("customer_registeration_form.html")
 
 
-# REGISTER SERVICE professional ON A NEW PAGE:  professional/register
+# REGISTER SERVICE PROFESSIONAL ON A NEW PAGE:  professional/register
 @app.route("/professional/register" , methods=["GET" , "POST"])
 def professional_register():
     if (request.method == "POST"):
@@ -229,9 +229,10 @@ def professional_register():
 @app.route("/login" , methods =["GET" , "POST"])
 def login():
     
-    if "user" in session:
-        return redirect("/user/home" ) 
-
+    if "firstname" in session:
+        flash("Please Sign Out First"),400
+        return redirect(url_for("user_home"))
+     
     if (request.method == "POST"):
         email = request.form.get("email")
         password = request.form.get("password")
@@ -240,13 +241,12 @@ def login():
 
         # if not then register
         if not user:
-            flash("please create account first")
+            flash("please create account first"),400
             return redirect(url_for("register"))
 
         if user:
 
             if (email == user.email and user.check_password(password) ):
-
                 # session['user'] = user.id      ---YET TO MAKE SESSION---
                 session['firstname']=user.firstname
                 session['lastname']=user.lastname
@@ -262,10 +262,11 @@ def login():
                 if (user.role_id == 1):
                     return "hello admin , yet to make admin dashboard "  # make admin dashboard page
             else:
-                return "credentials didnt match"
+                flash("invalid email or password")
+                return redirect(url_for("login"))
         else:
-            return "user NOT FOUND"
-            # return redirect("/register")
+            flash("User NOT FOUND , Please Register First")
+            return redirect("/login")
     return render_template("login.html")
 
 @app.route("/signout")
@@ -290,7 +291,7 @@ def user_home():
             'Saloon': {'icon': 'fas fa-cut'},
             'Cleaning': {'icon': 'fas fa-broom'},
             'Electrician': {'icon': 'fas fa-bolt'},
-            'Plumbing': {'icon': 'fas fa-faucet'}
+            'Plumbing': {'icon': 'fas fa-faucet'},
         }
         
         # Dummy data for service history using pandas DataFrame
@@ -303,10 +304,19 @@ def user_home():
         
         return render_template("user_dashboard.html", services=services, service_history=service_history)
 
+@app.route("/edit/customer_profile", methods=["GET","POST"])
+def edit_customer_profile():
+    # if request.method == "POST":
+
+    return render_template("edit_customer_profile.html")    
+
 @app.route("/user/home/bookings" , methods=["GET"])
 def bookings():
     return "heres is your history of booking and active services"
 
+@app.route("/admin_dashboard"  , methods=["GET"])
+def admin_dashboard():
+    return render_template("admin_dashboard.html")
 
     
 if __name__ == "__main__":
