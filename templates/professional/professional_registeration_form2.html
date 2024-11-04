@@ -1,4 +1,4 @@
-{%extends "base3.html"%} {%block content%}
+{%extends "base.html"%} {%block content1%}
 
 <div class="container-fluid">
   <div class="row min-vh-100">
@@ -19,11 +19,11 @@
     </div>
     <div class="col-md-6 d-flex align-items-center">
       <div class="w-100 p-4">
-        <h2 class="mb-4" style="margin: 2px !important; ">Customer Registration</h2>
+        <h2 class="mb-4" style="margin: 2px !important; ">Service professional</h2>
         <!-- <br/> -->
-        <a href="/professional/register" style="font-size: medium;"> Register as Service professional </a>
+        <a href="/professional/register" style="font-size: medium;">Register as Customer</a>
         <p class="text-muted mb-4" style="margin: 2px !important ;">Enter your details to register</p>
-        <form action="/register" method ="POST" >
+        <form action="/professional/register" method ="POST" >
           
         <!-- first name -->
           <div class="form-group" style="margin: 0px 0px 8px;">
@@ -105,6 +105,32 @@
               required
             />
           </div>
+
+          <!-- skill -->
+          <div class="form-group" style="margin: 0px 0px 8px;">
+            <label for="skill" style="margin: 2px;">skill *</label>
+            <input 
+              name="skill"
+              type="text"
+              class="form-control"
+              id="skill"
+              required
+              />
+          </div>
+          
+          <!-- experience -->
+          <div class="form-group" style="margin: 0px 0px 8px;">
+            <label for="experience" style="margin: 2px;">experience </label>
+            <input 
+              name="experience"
+              type="number"
+              class="form-control"
+              id="experience"
+              placeholder="in years"
+              required
+              />
+          </div>
+
           <!-- profile_image -->
           <div class="form-group" style="margin: 0px 0px 8px;">
             <label for="profile_image" style="margin: 2px;">profile image</label>
@@ -117,8 +143,7 @@
           </div>
 
 
-
-          <!-- termand conditions -->
+          <!-- term and conditions -->
           <div class="form-group form-check">
             <input type="checkbox" class="form-check-input" id="terms" />
             <label class="form-check-label" for="terms"

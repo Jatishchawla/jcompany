@@ -1,0 +1,74 @@
+.welcome-section h2 {
+    color: #007bff;
+}
+
+.service-booking-panel .card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.service-booking-panel .card:hover {
+    transform: scale(1.05);
+}
+
+.booking-item h6 {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.notifications ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.notifications ul li {
+    padding: 5px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+.view-more {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+/* Styling for service cards */
+.service-card {
+    max-width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.service-card:hover {
+    transform: scale(1.02);
+}
+
+.service-card .card-img-top {
+    height: 150px;  /* Adjust as needed */
+    object-fit: cover;
+}
+
+.service-card .card-body {
+    padding: 8px;
+}
+
+.service-card .card-title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.service-card .card-text {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+}
+
+.service-card .btn {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+}

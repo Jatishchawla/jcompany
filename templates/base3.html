@@ -1,180 +1,172 @@
+<!-- TO BE DELETED -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Custom Navbar</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
     />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <link rel="icon" href="/docs/4.0/assets/img/favicons/favicon.ico" />
+    <style>
+      /* Custom styles for navbar */
+      .navbar {
+        border-bottom: 1px solid #ddd;
+      }
+      .navbar-brand {
+        font-weight: 500;
+      }
+      .navbar-nav .nav-link {
+        color: #333;
+        margin: 0 10px;
+      }
+      .navbar-nav .nav-link:hover {
+        color: #000;
+      }
+      .btn-signin {
+        border: 1px solid #007bff;
+        color: #007bff;
+        border-radius: 5px;
+      }
+      .btn-signin:hover {
+        background-color: #007bff;
+        color: #fff;
+      }
+      /* Add this to your existing CSS */
+      .nav-item {
+        position: relative; /* Make sure the parent has position relative */
+        display: inline-block; /* Ensure elements are inline-block for positioning */
+      }
+      .nav-item1 {
+        position: relative; /* Make sure the parent has position relative */
+        display: inline-block; /* Ensure elements are inline-block for positioning */
+      }
 
-    <title>house hold services</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+      .nav-item::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 2px; /* Adjust thickness of the underline */
+        background-color: #da4c4c; /* Change to desired color */
+        transform: scaleX(0); /* Initially scale to 0 */
+        transition: transform 0.3s ease; /* Animation transition */
+      }
 
-    <link
-      href="{{url_for('static',filename='css/pricing.css')}}"
-      rel="stylesheet"
-    />
-    <link
-      href="{{url_for('static',filename='css/signin.css')}}"
-      rel="stylesheet"
-    />
-    <link
-      href="{{url_for('static',filename='css/global.css')}}"
-      rel="stylesheet"
-    />
+      .nav-item:hover::after {
+        transform: scaleX(1); /* Scale to full width on hover */
+      }
+
+      /* Existing hover effect for darkening the text */
+      .nav-item:hover {
+        color: #000000; /* Change this to your desired hover text color */
+      }
+
+      .nav {
+        list-style-type: none; /* Remove bullets */
+        padding: 0; /* Remove padding */
+        display: flex; /* Use flexbox for alignment */
+        align-items: center; /* Center items vertically */
+      }
+
+      .nav-item {
+        position: relative;
+        display: inline-block;
+        margin-right: 20px; /* Spacing between items */
+      }
+
+      .dropdown {
+        position: relative;
+      }
+
+      .profile-pic {
+        width: 30px; /* Adjust size of profile picture */
+        height: 30px; /* Adjust size of profile picture */
+        border-radius: 50%; /* Make it circular */
+        margin-right: 5px; /* Spacing between pic and button */
+      }
+
+      .dropdown-toggle {
+        background: none; /* Remove default button styling */
+        border: none; /* Remove border */
+        cursor: pointer; /* Change cursor to pointer */
+        font-size: 16px; /* Font size for dropdown button */
+      }
+
+      .dropdown-menu {
+        display: none; /* Initially hide dropdown menu */
+        position: absolute;
+        top: 100%; /* Position below the dropdown button */
+        left: 0;
+        background-color: white; /* Background for dropdown */
+        border: 1px solid #ccc; /* Border for dropdown */
+        z-index: 1000; /* Ensure it appears on top */
+      }
+
+      .dropdown:hover .dropdown-menu {
+        display: block; /* Show dropdown on hover */
+      }
+    </style>
   </head>
-
   <body>
-    <!-- header -->
-    <header>
-      <div class="fixed-top d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
-        <a href="/" class="text-dark">
-          <img
-            class="mb-4"
-            
-            src="https://www.creativefabrica.com/wp-content/uploads/2019/02/Monogram-JC-Logo-Design-by-Greenlines-Studios.jpg"
-            alt="logo"
-            width="40"
-            height="30"
-            style="margin: 0px 4px 0px 0px !important;"
-          />
+    <nav class="navbar navbar-expand-lg bg-white">
+      <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+          <img src="logo.png" alt="Logo" width="30" height="30" class="me-2" />
           J Company
         </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Services</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Support</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Subscription</a>
+            </li>
+            <li class="nav-item1">
+              <a href="#" class="btn btn-sm btn-signin ms-3">Sign in</a>
+            </li>
 
-        <!-- <h5 class="my-0 mr-md-auto font-weight-normal" >J Company </h5> -->
-        <nav class="my-2 my-md-0 mr-md-3 ml-auto">
-          <a class="p-2 text-dark" href="/user/home">Home</a>
-          <a class="p-2 text-dark" href="#services">Services</a>
-          <a class="p-2 text-dark" href="#">Support</a>
-          <a class="p-2 text-dark" href="#subscription">Subscription</a>
-          {%if not session['signedin']%}
-          <a class="btn btn-outline-primary" style="margin-right: 5px;" href="/login">Sign in</a>
-          {%endif%} 
-          {%if session['signedin']%}   
-          <a class="p-2 text-dark" href="/user/summary">Summary</a>
-        </nav>
-        <!-- ppProfile Dropdown (Right) -->
-        <div class="dropdown">
-          <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-             
-              <img src= "https://media.licdn.com/dms/image/v2/D5603AQEIypDKPKLtYA/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1725212034240?e=1733356800&v=beta&t=YvQ8PsUro9THgItDHbiAzcBI6LfenNQVPgCz4P2PA9o" class="rounded-circle" alt="Profile" width="30">
-            
-            </a>
-          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
-              <a class="dropdown-item" href="#">View Profile</a>
-              <a class="dropdown-item" href="/edit/customer_profile">Edit Profile</a>
-              <a class="dropdown-item" href="#">My Bookings</a>
-              <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="/signout">Sign out</a>
-          </div>
-          {%endif%}
-      </div>
-
-    </header>
-    <!-- header end -->
-
-
-    {%block content1%} 
-    
-    {%endblock%}
-   
-
-    <div class="container mt-5" style="max-width: 75vw !important;">
-      <br /><br />
-
-       <!-- alert start -->
-       {% with messages = get_flashed_messages() %}
-       {% if messages %}
-         {% for message in messages %}
-           <div class="alert alert-success alert-dismissible fade show alert-fixed" role="alert">
-             {{ message }}
-             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-               <span aria-hidden="true">&times;</span>
-             </button>
-           </div>
-         {% endfor %}
-       {% endif %}
-     {% endwith %}
-<!-- alert end -->
-
-{%block content%} 
-      
-{%endblock%}
-      <!-- footer -->
-      <footer class="pt-4 my-md-5 pt-md-5 border-top">
-        <div class="row">
-          <div class="col-12 col-md">
-            <img
-              class="mb-2"
-              src="https://www.creativefabrica.com/wp-content/uploads/2019/02/Monogram-JC-Logo-Design-by-Greenlines-Studios.jpg"
-              alt=""
-              width="24"
-              height="24"
-            />
-            <small class="d-block mb-3 text-muted">&copy; 2017-2018</small>
-          </div>
-          <div class="col-6 col-md">
-            <h5>Features</h5>
-            <ul class="list-unstyled text-small">
-              <li><a class="text-muted" href="#">Cool stuff</a></li>
-              <li><a class="text-muted" href="#">Random feature</a></li>
-              <li><a class="text-muted" href="#">Team feature</a></li>
-              <li><a class="text-muted" href="#">Stuff for developers</a></li>
-              <li><a class="text-muted" href="#">Another one</a></li>
-              <li><a class="text-muted" href="#">Last time</a></li>
-            </ul>
-          </div>
-          <div class="col-6 col-md">
-            <h5>Resources</h5>
-            <ul class="list-unstyled text-small">
-              <li><a class="text-muted" href="#">Resource</a></li>
-              <li><a class="text-muted" href="#">Resource name</a></li>
-              <li><a class="text-muted" href="#">Another resource</a></li>
-              <li><a class="text-muted" href="#">Final resource</a></li>
-            </ul>
-          </div>
-          <div class="col-6 col-md">
-            <h5>About</h5>
-            <ul class="list-unstyled text-small">
-              <li><a class="text-muted" href="#">Team</a></li>
-              <li><a class="text-muted" href="#">Locations</a></li>
-              <li><a class="text-muted" href="#">Privacy</a></li>
-              <li><a class="text-muted" href="#">Terms</a></li>
-            </ul>
-          </div>
+            <li class="nav-item1 dropdown">
+              <img
+                src="path/to/profile-pic.jpg"
+                alt=""
+                class="profile-pic"
+              />
+              <!-- Add your profile picture here -->
+              <button class="dropdown-toggle"></button>
+              <!-- Dropdown button -->
+              <ul class="dropdown-menu">
+                <li>Profile Settings</li>
+                <li>View Profile</li>
+                <div class="dropdown-divider"></div>
+                <li>Sign Out</li>
+              </ul>
+            </li>
+          </ul>
         </div>
-      </footer>
-    </div>
-    <!-- footer -->
+      </div>
+    </nav>
 
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script
-      src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-      integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-      crossorigin="anonymous"
-    ></script>
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script> -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-
-    
-    
-    <script>
-
-      Holder.addTheme("thumb", {
-        bg: "#55595c",
-        fg: "#eceeef",
-        text: "Thumbnail",
-      });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

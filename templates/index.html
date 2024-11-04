@@ -1,8 +1,13 @@
-{%extends "base3.html"%}
+{%extends "base2.html"%}
+
+{%block head%}
+    <link
+      href="{{url_for('static',filename='css/index.css')}}"
+      rel="stylesheet"
+    />
+{%endblock%}
 
 {%block content%}
-
-
 
 <section id="subscription">
 <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">

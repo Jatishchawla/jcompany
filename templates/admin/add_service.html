@@ -1,0 +1,31 @@
+{%extends "base2.html"%}
+{%block content%}
+
+<div class="container my-5 pt-4">
+    <div class="row text-center">Welcome Admin!</div>
+
+    <div class="form">
+        <form action="/admin/add_service" method="POST"> 
+            <label for="service_name">service name</label>
+            <input type="text" name="name" id="service_name" placeholder="Enter new service name" required>
+            
+            <label for="category_id">category id</label>
+            <input type="number" name="category_id" id="category_id" placeholder="Enter category_id " required>
+        
+            
+            <label for="price">price</label>
+            <input type="number" name="price" id="price" placeholder="Enter price" required>
+        
+            
+            <label for="description">description</label>
+            <input type="text" name="description" id="description" placeholder="Enter description" required>
+            
+            <label for="duration ">duration</label>
+            <input type="number" name="duration" id="duration" placeholder="Enter duration" required>
+        
+            <button type="submit">Submitt</button>
+        </form>
+    </div>    
+</div>
+
+{%endblock%}

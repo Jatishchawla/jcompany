@@ -1,0 +1,403 @@
+<!-- FINAL SELECTED -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>J Company</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+
+    <link
+      href="{{url_for('static',filename='css/base2.css')}}"
+      rel="stylesheet"
+    />
+
+
+
+    {%block head%}
+
+    {%endblock%}
+
+
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid">
+        <!-- Logo and Name -->
+        <a class="navbar-brand d-flex align-items-center ms-3" href="/1">
+          <img
+            src="{{url_for('static' , filename='pic/JC_logo.png')}}"
+            alt="Logo"
+            class="me-2 navbar-logo"
+          />
+          <span>J Company</span>
+        </a>
+
+        <!-- Navbar Toggle for Mobile View -->
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Centered Elements -->
+        <div
+          class="collapse navbar-collapse justify-content-center"
+          id="navbarNav"
+        >
+          <div class="navbar-center">
+            <!-- Address Dropdown styled as search bar -->
+            <div class="dropdown me-3">
+              <button
+                class="btn btn-outline-secondary dropdown-toggle"
+                type="button"
+                id="addressDropdown"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Select Address
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="addressDropdown">
+                <li><a class="dropdown-item" href="#">Address 1</a></li>
+                <li><a class="dropdown-item" href="#">Address 2</a></li>
+                <li><a class="dropdown-item" href="#">Address 3</a></li>
+              </ul>
+            </div>
+
+            <!-- Search Bar -->
+            <form id="search-form" action="/search" method="GET" class="d-inline-block position-relative">
+              <input
+                type="text"
+                class="search-bar"
+                id="search-input"
+                placeholder="Search..."
+                required
+              />
+              <div class="dropdown-menu position-absolute" style="width: 100%; z-index: 1000;">
+                <div class="dropdown-header">Trending Searches</div>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#">AC Repair</a>
+                <a class="dropdown-item" href="#">Plumbing</a>
+                <a class="dropdown-item" href="#">Electrical</a>
+                <a class="dropdown-item" href="#">Cleaning Services</a>
+              </div>
+            </form>
+            
+          </div>
+        </div>
+        
+
+        <!-- Right-Aligned Elements -->
+        <div class="d-flex align-items-center">
+          <!-- Navbar Links -->
+          <ul class="navbar-nav me-3">
+            <li class="nav-item">
+              <a class="nav-link underline-effect" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link underline-effect" href="#services">Services</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link underline-effect" href="#support">Support</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link underline-effect" href="#subscription"
+                >Subscription</a
+              >
+            </li>
+          </ul>
+
+          {%if not session['signedin']%}
+          <!-- Sign In Button -->
+          <a id="autoClickButton" class="btn btn-outline-primary me-3" data-bs-toggle="modal" data-bs-target="#signInModal" >Sign In</a>
+          {%endif%} 
+          {%if session['signedin']%}
+          <!-- Profile Dropdown -->
+          <div class="dropdown">
+            <img
+              src="https://media.licdn.com/dms/image/v2/D5603AQEIypDKPKLtYA/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1725212034240?e=1733356800&v=beta&t=YvQ8PsUro9THgItDHbiAzcBI6LfenNQVPgCz4P2PA9o"
+              class="rounded-circle profile-pic"
+              alt="dp"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            />
+            <i class="bi bi-caret-down-fill"></i>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <a class="dropdown-item" href="#viewprofile">View Profile</a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="#profilesettings"
+                  >Profile Settings</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" href="/user/mybookings">My Bookings</a>
+              </li>
+              <div class="dropdown-divider"></div>
+              <li><a class="dropdown-item" href="/signout">Sign out</a></li>
+            </ul>
+          </div>
+          {%endif%}
+        </div>
+      </div>
+    </nav>
+
+        <!-- Sign-In Modal -->
+    <div class="modal fade" id="signInModal" tabindex="-1" aria-labelledby="signInModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content sign-in-box">
+          <div class="modal-header">
+            <h2 class="modal-title" id="signInModalLabel">Sign In</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form action="/login" method="POST">
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email">
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password">
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Sign In</button>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <p class="mt-3 text-center">
+              Not Registered? <a href="#" data-bs-toggle="modal" data-bs-target="#signUpModal" data-bs-dismiss="modal">Sign Up Here</a>
+          </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<!-- Sign Up Modal -->
+<div class="modal fade" id="signUpModal" tabindex="-1" aria-labelledby="signUpModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="signUpModalLabel">Register as Customer</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <!-- <p class="mt-3 text-center"> -->
+              <a href="#" data-bs-toggle="modal" data-bs-target="#signUpModal_serviceprofessional" data-bs-dismiss="modal">
+                Click here to Register As Service Professional
+              </a>
+          <!-- </p> -->
+          <div class="modal-body">
+              <form action="/register" method="POST" >
+                  <div class="mb-3">
+                      <label for="firstName" class="form-label">First Name</label>
+                      <input type="text" class="form-control" id="firstName" name="firstname" required>
+                  </div>
+                  <div class="mb-3">
+                      <label for="lastName" class="form-label">Last Name</label>
+                      <input type="text" class="form-control" id="lastName" name="lastname" required>
+                  </div>
+                  <div class="mb-3" >
+                      <label for="email" class="form-label">Email</label>
+                      <input type="email" class="form-control" id="email" name="email" required>
+                  </div>
+                  <div class="mb-3">
+                      <label for="password" class="form-label">Password</label>
+                      <input type="password" class="form-control" id="password" name="password" required>
+                  </div>
+                  <div class="mb-3">
+                      <label for="address" class="form-label">Address</label>
+                      <textarea class="form-control" id="address" rows="3" name="address" required></textarea>
+                  </div>
+                  <div class="mb-3">
+                      <label for="pincode" class="form-label">Pincode</label>
+                      <input type="text" class="form-control" id="pincode" name="pincode" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="phoneNumber" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" name="phonenumber" id="phoneNumber" required>
+                  </div>
+                  <div class="mb-3">
+                      <label for="profile_image" class="form-label">Profile Image</label>
+                      <input type="file" class="form-control" name="profile_image" id="profile_image" >
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100">Register</button>
+              </form>
+          </div>
+      </div>
+  </div>
+</div>
+<!-- Sign Up Modal for Service Professional-->
+<div class="modal fade" id="signUpModal_serviceprofessional" tabindex="-1" aria-labelledby="signUpModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+      <div class="modal-content">
+        
+          <div class="modal-header ">
+              <h5 class="modal-title" id="signUpModalLabel">Register as Service Professional</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <!-- <p class="mt-3 text-center"> -->
+              <a href="#SignUpCustomer" data-bs-toggle="modal" data-bs-target="#signUpModal" data-bs-dismiss="modal">
+                Click here to Register As Customer
+              </a>
+          <!-- </p> -->
+          <div class="modal-body">
+              <form action="/professional/register" method="POST">
+                <!-- fist name -->
+                  <div class="mb-3">
+                      <label for="firstName" class="form-label">First Name</label>
+                      <input type="text" class="form-control" id="firstName" name="firstname" required>
+                  </div>
+                  <!-- last name -->
+                  <div class="mb-3">
+                      <label for="lastName" class="form-label">Last Name</label>
+                      <input type="text" class="form-control" id="lastName" name="lastname" required>
+                  </div>
+                  <!-- email -->
+                  <div class= "mb-3" >
+                      <label for="email" class="form-label">Email</label>
+                      <input type="email" class="form-control" id="email" name="email" required>
+                  </div>
+                  <!-- password -->
+                  <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                  </div>
+                  <!-- address -->
+                  <div class="mb-3">
+                    <label for="address" class="form-label">Address</label>
+                    <textarea class="form-control" id="address" rows="3" name="address" required></textarea>
+                  </div>
+                  <!-- pincode -->
+                  <div class="mb-3">
+                    <label for="pincode" class="form-label">Pincode</label>
+                    <input type="text" class="form-control" id="pincode" name="pincode" required>
+                  </div>
+                  <!-- phone number -->
+                  <div class="mb-3">
+                    <label for="phonenumber" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" name="phonenumber" id="phonenumber" required>
+                  </div>
+                  <!-- expirience -->
+                  <div class= "mb-3" >
+                      <label for="experience" class="form-label">Experience</label>
+                      <input type="number" class="form-control" id="experience" name="experience" placeholder="in years" required>
+                  </div>
+                  <!-- skill -->
+                  <div class= "mb-3" >
+                      <label for="skill" class="form-label">Skill</label>
+                      <input type="text" class="form-control" id="skill" name="skill" required>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100">Register</button>
+              </form>
+          </div>
+      </div>
+  </div>
+</div>
+
+
+    {% block content %} {% endblock %}
+
+
+
+    <!-- alert start -->
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+          <div class="container">
+              {% for category, message in messages %}
+                  <div class="alert alert-{{ category }} alert-dismissible fade show alert-fixed" role="alert">
+                      {{ message }}
+                      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+              {% endfor %}
+          </div>
+      {% endif %}
+    {% endwith %}
+    <!-- alert end -->
+
+
+      <!-- footer -->
+    <footer class="bg-dark text-light pt-4">
+      <div class="container">
+        <div class="row">
+          <!-- About Section -->
+          <div class="col-md-3 mb-3">
+            <h5>About Us</h5>
+            <p>
+              Your trusted household services provider, offering a range of
+              services from plumbing to electrical work.
+            </p>
+          </div>
+
+          <!-- Quick Links -->
+          <div class="col-md-3 mb-3">
+            <h5>Quick Links</h5>
+            <ul class="list-unstyled">
+              <li><a href="#" class="text-light">Home</a></li>
+              <li><a href="#" class="text-light">Services</a></li>
+              <li><a href="#" class="text-light">Pricing</a></li>
+              <li><a href="#" class="text-light">Contact Us</a></li>
+            </ul>
+          </div>
+
+          <!-- Contact Info -->
+          <div class="col-md-3 mb-3">
+            <h5>Contact Us</h5>
+            <p><i class="bi bi-telephone-fill"></i> +1 234 567 890</p>
+            <p>
+              <i class="bi bi-envelope-fill"></i> support@householdservice.com
+            </p>
+            <p><i class="bi bi-geo-alt-fill"></i> 123 Main St, Hometown</p>
+          </div>
+
+          <!-- Social Media Links -->
+          <div class="col-md-3 mb-3">
+            <h5>Follow Us</h5>
+            <a href="#" class="text-light me-2"
+              ><i class="bi bi-facebook"></i
+            ></a>
+            <a href="#" class="text-light me-2"
+              ><i class="bi bi-twitter"></i
+            ></a>
+            <a href="#" class="text-light me-2"
+              ><i class="bi bi-instagram"></i
+            ></a>
+            <a href="#" class="text-light"><i class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+
+        <div class="text-center mt-3">
+          <p>&copy; 2024 Household Services. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document
+        .getElementById("search-input")
+        .addEventListener("keypress", function (event) {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            document.getElementById("search-form").submit();
+          }
+        });
+    </script>
+    {%block  script%}
+    {%endblock%}
+
+  </body>
+</html>

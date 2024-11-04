@@ -1,0 +1,29 @@
+{% extends "base2.html" %}
+{%block head%}
+<link
+      href="{{url_for('static',filename='css/login2.css')}}"
+      rel="stylesheet"
+    />
+{%endblock%}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="background-image">
+        <div class="sign-in-box">
+            <h2>Sign In</h2>
+            <form action="/login" method="POST">
+                <label for="email">Email</label>
+                <input type="email" name="email" id="email" placeholder="Enter your email" required>
+                
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" placeholder="Enter your password" required>
+                
+                <button type="submit">Sign In</button>
+                
+                <p>Not Registered? <a href="/register">SignUp Here</a></p>
+            </form>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

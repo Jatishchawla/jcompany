@@ -1,0 +1,146 @@
+{% extends "base2.html" %}
+{%block head%}
+    <link
+      href="{{url_for('static',filename='css/customer_dasboard.css')}}"
+      rel="stylesheet"
+    />
+{%endblock%}
+{% block content %}
+<div class="container my-5">
+    <!-- Welcome Section -->
+    <div class="welcome-section p-3 mb-4 bg-light rounded shadow-sm text-center">
+        <h2>Welcome, {{ session.firstname }}!</h2>
+        <p>What would you like to do today?</p>
+        <a href="#booking-panel" class="btn btn-primary mt-2">Book a Service</a>
+    </div>
+
+    <div class="container mt-5">
+        <h1>Welcome, User</h1>
+
+        <!-- Service Cards Section -->
+        <div class="container mt-4">
+            <h2>Our Services</h2>
+            <div class="row">
+                {% for service in services[:8] %}  <!-- Show only 8 services in the grid -->
+                    <div class="col-md-3 mb-4">  <!-- Adjust to fit 4 cards per row -->
+                        <div class="card service-card h-100">
+                            <img src="{{ url_for('static', filename='/pic/service_pic_6.jpg') }}" class="card-img-top" alt="Service Image">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ service.name }}</h5>
+                                <p class="card-text">{{ service.category.name }}</p>
+                                <p class="card-text"><strong>Price: ${{ service.price }}</strong></p>
+                                <a href="{{ url_for('view_service', service_id=service.id) }}" class="btn btn-primary btn-sm">View Details</a>
+                                <a href="{{ url_for('book_service', service_id=service.id) }}" class="btn btn-success btn-sm">Book Service</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="text-end">
+                <a href="#" class="btn btn-secondary">View More</a>
+            </div>
+        </div>
+
+
+
+
+    <button href="/customer/book_service">book a service</button>
+    <!-- Service Booking Panel -->
+    <div id="booking-panel" class="service-booking-panel p-4 mb-4 bg-white rounded shadow-sm">
+        <h3>Find a Service</h3>
+        <div class="input-group my-3">
+            <input type="text" class="form-control" placeholder="Search for services..." aria-label="Search">
+            <button class="btn btn-outline-primary" type="button">Search</button>
+        </div>
+        <div class="categories mt-4">
+            <h5>Popular Categories</h5>
+            <div class="row">
+                <!-- Example category cards, repeat as necessary -->
+                <div class="col-md-3">
+                    <div class="card mb-3 shadow-sm">
+                        <img src="/static/images/category.jpg" class="card-img-top" alt="Category Image">
+                        <div class="card-body">
+                            <h6 class="card-title">AC Repair</h6>
+                            <a href="#" class="btn btn-primary btn-sm">View Services</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Repeat similar cards for other categories -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming and Past Bookings -->
+    <div class="booking-section p-4 mb-4 bg-white rounded shadow-sm">
+        <h3>Your Bookings</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Upcoming Bookings</h5>
+                <!-- Example booking item -->
+                <div class="booking-item mb-3 p-3 bg-light rounded shadow-sm">
+                    <h6>AC Repair</h6>
+                    <p>Date: 2024-11-10</p>
+                    <button class="btn btn-outline-secondary btn-sm">View Details</button>
+                    <button class="btn btn-outline-danger btn-sm">Cancel</button>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h5>Past Bookings</h5>
+                <div class="booking-item mb-3 p-3 bg-light rounded shadow-sm">
+                    <h6>Plumbing Service</h6>
+                    <p>Date: 2024-10-20</p>
+                    <button class="btn btn-outline-secondary btn-sm">View Details</button>
+                    <button class="btn btn-outline-success btn-sm">Give Feedback</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="booking-section">
+        <h3>Upcoming Bookings</h3>
+        <ul>
+            {% for booking in upcoming_bookings %}
+            <li>
+                <strong>{{ booking.service_id }}</strong> - {{ booking.booking_date }}
+                <a href="#" class="btn btn-outline-secondary btn-sm">View Details</a>
+                <a href="#" class="btn btn-outline-danger btn-sm">Cancel</a>
+            </li>
+            {% endfor %}
+        </ul>
+    
+        <h3>Past Bookings</h3>
+        <ul>
+            {% for booking in past_bookings %}
+            <li>
+                <strong>{{ booking.service_id }}</strong> - {{ booking.booking_date }}
+                <a href="#" class="btn btn-outline-secondary btn-sm">View Details</a>
+                <a href="#" class="btn btn-outline-success btn-sm">Give Feedback</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <!-- Profile Overview -->
+    <div class="profile-overview p-4 mb-4 bg-white rounded shadow-sm">
+        <h3>Profile Overview</h3>
+        <p><strong>Name:</strong> {{ session.firstname }} {{ session.lastname }}</p>
+        <p><strong>Email:</strong> {{ session.email }}</p>
+        <p><strong>Address:</strong> {{ session.address }}</p>
+        <a href="/edit-profile" class="btn btn-primary btn-sm">Edit Profile</a>
+    </div>
+
+    <!-- Notifications and Updates -->
+    <div class="notifications p-4 mb-4 bg-white rounded shadow-sm">
+        <h3>Notifications</h3>
+        <ul>
+            <li>No new notifications</li>
+        </ul>
+    </div>
+
+    <!-- Customer Support -->
+    <div class="customer-support p-4 bg-light rounded shadow-sm text-center">
+        <h3>Need Help?</h3>
+        <p>Contact our support team for assistance.</p>
+        <a href="/support" class="btn btn-outline-primary">Contact Support</a>
+    </div>
+</div>
+{% endblock %}
