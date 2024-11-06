@@ -4,143 +4,320 @@
       href="{{url_for('static',filename='css/customer_dasboard.css')}}"
       rel="stylesheet"
     />
+    <style>
+        .table-responsive {
+            position: relative;
+        }
+
+        .table thead th {
+            position: sticky;
+            top: 0;
+            background-color: #343a40;
+            z-index: 1;
+        }
+        .scrolling-wrapper {
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .category-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            transition: transform 0.2s;
+        }
+
+        .category-card:hover {
+            transform: scale(1.05);
+        }
+
+        .card-title {
+            font-size: 14px;
+            white-space: nowrap;
+            /* overflow: hidden; */
+            text-overflow:inherit ;
+            margin: 0;
+        }
+
+
+    </style>
 {%endblock%}
 {% block content %}
-<div class="container my-5">
+
+
+
     <!-- Welcome Section -->
-    <div class="welcome-section p-3 mb-4 bg-light rounded shadow-sm text-center">
+    <div class="welcome-section container p-3 mt-5 mb-4 bg-white rounded shadow-sm text-center">
         <h2>Welcome, {{ session.firstname }}!</h2>
         <p>What would you like to do today?</p>
-        <a href="#booking-panel" class="btn btn-primary mt-2">Book a Service</a>
+        <a href="/view_service" class="btn btn-primary mt-2">Book a Service</a>
+
+        <div class="container my-4">
+            <h4 style="text-align: left;">Looking For?</h4>
+            <div class="scrolling-wrapper d-flex flex-row overflow-auto">
+                {% for category in categories %}
+                <div class="card category-card text-center m-2" style="width: 120px; flex-shrink: 0;">
+                    <a href="/services/{{ category.id }}" class="text-decoration-none text-dark">
+                        <img src="{{ url_for('static', filename='/pic/service_pic_6.jpg') }}" class="card-img-top" alt="{{ category.name }}" style="height: 80px; object-fit: cover;">
+                        <div class="card-body p-2">
+                            <h6>{{ category.name }}</h6>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 
-    <div class="container mt-5">
-        <h1>Welcome, User</h1>
-
-        <!-- Service Cards Section -->
-        <div class="container mt-4">
-            <h2>Our Services</h2>
+    <!-- Upcoming and Bookings history -->
+    <div class="container">
+        <div id="mybooking"  class="booking-section p-4 mb-4 bg-white rounded shadow-sm">
+            <h2>Your Bookings</h2>
+            <hr>
+            <!-- upcoming bookings  -->
             <div class="row">
-                {% for service in services[:8] %}  <!-- Show only 8 services in the grid -->
-                    <div class="col-md-3 mb-4">  <!-- Adjust to fit 4 cards per row -->
-                        <div class="card service-card h-100">
-                            <img src="{{ url_for('static', filename='/pic/service_pic_6.jpg') }}" class="card-img-top" alt="Service Image">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ service.name }}</h5>
-                                <p class="card-text">{{ service.category.name }}</p>
-                                <p class="card-text"><strong>Price: ${{ service.price }}</strong></p>
-                                <a href="{{ url_for('view_service', service_id=service.id) }}" class="btn btn-primary btn-sm">View Details</a>
-                                <a href="{{ url_for('book_service', service_id=service.id) }}" class="btn btn-success btn-sm">Book Service</a>
+                <h3>Upcoming Bookings</h3>
+                {% for booking in upcoming_bookings %}
+                <div class="col-md-6">
+                    <div class="booking-item mb-3 p-3 bg-light rounded shadow-sm">
+                        <h6>{{booking.service.name}}</h6>
+                        <p>{{booking.booking_date}}</p>
+                        <p><strong>assigned professional:</strong> {{booking.professional_id}}</p>
+
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bookingDetailsModal{{ booking.id }}">
+                            View Booking Details
+                        </button>
+                        <a class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirm_cancel{{booking.id}}">Cancel</a >
+                    </div>
+                </div>
+                <!-- confirm cancel -->
+                <div class="modal fade" id = "confirm_cancel{{booking.id}}">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-dark rounded ">
+                                <h5 class="modal-title">Confirm Cancelation</h5> 
+                                <button type="button" class="btn-close bg-white " data-bs-dismiss="modal" aria-label></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure you want to cancel this booking?</p>
+                                <p><strong>Service Name: </strong>  {{booking.service.name}}</p>
+                                <p><strong>Booking Date: </strong>  {{booking.booking_date}}</p>
+                                <hr>
+                                <!-- get user reviews-->
+                                <form action="/cancel_booking/{{booking.id}}" method="POST" style="display: inline;">
+                                    <label class="form-label" for="feedback">Feedback </label>
+                                    <input class="form-control" type="text" id="feedback" name="feedback"  placeholder="Enter reason to cancel ...">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm mt-2" >Cancel Booking</button>
+                                </form>
+                            </div>
+                            <!-- <div class="modal-footer"> -->
+                                
+
+                            <!-- </div> -->
+                        </div>
+                    </div>
+                </div>
+
+                <!--booking details model-->
+                <div class="modal fade" id="bookingDetailsModal{{booking.id}}" tabindex="-1" aria-labelledby="bookingDetailsModalLabel{{booking.id}}" aria-hidden="true" >
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="bookingDetailsModal{{booking.id}}">Booking Details</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label></button>
+                            </div>
+                            <div class="modal-body">
+                                <h5>Booking details</h5>
+                                <p><strong>Service Name:</strong> {{booking.service.name}}</p>
+                                <p><strong>Description:</strong> {{booking.service.description}}</p>
+                                <p><strong>Price: </strong>Rs {{booking.service.price}}</p>
+                                <p><strong>Duration:</strong> {{booking.service.duration}} minutes</p>
+                                <p><strong>status:</strong> {{booking.status}}</p>
+                                <p><strong>assigned professional:</strong> {{booking.professional_id}}</p>
+
+                                <hr>
+                                <p><strong>booking Address:</strong> {{booking.user.address}}</p>
+                                <p><strong>Customer Name:</strong> {{booking.user.firstname}} {{booking.user.lastname}}</p>
+                                <p><strong>Customer Phone Number:</strong> {{booking.user.phone_number}}</p>
+                                <!-- <p><strong>Assigned Service Professional </strong></p> -->
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             </div>
                         </div>
                     </div>
+                </div>
                 {% endfor %}
             </div>
-            <div class="text-end">
-                <a href="#" class="btn btn-secondary">View More</a>
+            
+            <hr>
+
+            <div class="container mt-4">
+                <h3>Booking History</h3>
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>S No.</th>
+                                <th>Service Name</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Booking Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if all_bookings %}
+                                {% for booking in all_bookings %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ booking.service.name }}</td>
+                                        <td>{{ booking.service.description }}</td>
+                                        <td>{{ booking.service.category.name }}</td>
+                                        <td>${{ booking.service.price }}</td>
+                                        <td>{{ booking.booking_date }}</td>
+                                        <td>{{ booking.status }}</td>
+                                        <td>
+                                            <!-- <a href="/view_booking/{{ booking.id }}" class="btn btn-outline-secondary btn-sm">View Details</a> -->
+                                             {%if  booking.status != 'canceled'%}
+                                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bookingDetailsModal{{ booking.id }}">
+                                                View Booking Details
+                                            </button>
+                                            {%endif%}
+                                        </td>
+                                    </tr>
+                                     <!--booking details model-->
+                                        <div class="modal fade" id="bookingDetailsModal{{booking.id}}" tabindex="-1" aria-labelledby="bookingDetailsModalLabel{{booking.id}}" aria-hidden="true" >
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="bookingDetailsModal{{booking.id}}">Booking Details</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <h5>Booking details</h5>
+                                                        <p><strong>Service Name:</strong> {{booking.service.name}}</p>
+                                                        <p><strong>Description:</strong> {{booking.service.description}}</p>
+                                                        <p><strong>Price: </strong>Rs {{booking.service.price}}</p>
+                                                        <p><strong>Duration:</strong> {{booking.service.duration}} minutes</p>
+                                                        <p><strong>status:</strong> {{booking.status}}</p>
+                                                        <p><strong>assigned professional:</strong> {{booking.professional_id}}</p>
+                                                        <hr>
+                                                        <p><strong>booking Address:</strong> {{booking.user.address}}</p>
+                                                        <p><strong>Customer Name:</strong> {{booking.user.firstname}} {{booking.user.lastname}}</p>
+                                                        <p><strong>Customer Phone Number:</strong> {{booking.user.phone_number}}</p>
+                                                        <!-- <p><strong>Assigned Service Professional </strong></p> -->
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="7">No past bookings available.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
+            
         </div>
+    </div>
 
 
-
-
-    <button href="/customer/book_service">book a service</button>
-    <!-- Service Booking Panel -->
-    <div id="booking-panel" class="service-booking-panel p-4 mb-4 bg-white rounded shadow-sm">
-        <h3>Find a Service</h3>
-        <div class="input-group my-3">
-            <input type="text" class="form-control" placeholder="Search for services..." aria-label="Search">
-            <button class="btn btn-outline-primary" type="button">Search</button>
-        </div>
-        <div class="categories mt-4">
-            <h5>Popular Categories</h5>
-            <div class="row">
-                <!-- Example category cards, repeat as necessary -->
-                <div class="col-md-3">
-                    <div class="card mb-3 shadow-sm">
-                        <img src="/static/images/category.jpg" class="card-img-top" alt="Category Image">
-                        <div class="card-body">
-                            <h6 class="card-title">AC Repair</h6>
-                            <a href="#" class="btn btn-primary btn-sm">View Services</a>
+    <!-- Service Cards Section -->
+    <div class="container mt-5 p-3 bg-white rounded shadow-sm">
+        <h2>Our Popular Services</h2>
+        <div class="row">
+            {% for service in services[:8] %}  <!-- Show only 8 services in the grid -->
+            <div class="col-md-3 mb-4">  <!-- Adjust to fit 4 cards per row -->
+                <div class="card service-card h-100">
+                    <img src="{{ url_for('static', filename='/pic/service_pic_6.jpg') }}" class="card-img-top" alt="Service Image">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ service.name }}</h5>
+                        <p class="card-text">{{ service.category.id }}</p>
+                        <p class="card-text"><strong>Price: Rs {{ service.price }}</strong></p>
+                        <a href="{{ url_for('view_service', service_id=service.id) }}" class="btn btn-primary btn-sm">View service Details</a>
+    
+                        <!-- Book Service Button with unique data-bs-target -->
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bookingModal{{ service.id }}">
+                            Book Service
+                        </button>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Booking Modal with unique ID for each service -->
+            <div class="modal fade" id="bookingModal{{ service.id }}" tabindex="-1" aria-labelledby="bookingModalLabel{{ service.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="bookingModalLabel{{ service.id }}">Service Booking Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Service Details -->
+                            <h6>Service Information</h6>
+                            <p><strong>Service Name:</strong> {{ service.name }}</p>
+                            <p><strong>Category:</strong> {{ service.category_id }}</p>
+                            <p><strong>Service Details</strong> {{service.description}}</p>
+                            <p><strong>Duration:</strong> {{ service.duration }}</p>
+                            <p><strong>Service Rating:</strong> {{ service.rating }}</p>
+                            <p><strong>Price:</strong> Rs {{ service.price }}</p>                
+                            <!-- User Details -->
+                            <hr>
+                            <h6>Your Information</h6>
+                            <p><strong>Name:</strong> {{ session.firstname}} {{session.lastname}}</p>
+                            <p><strong>Address:</strong> {{ session['address'] }}</p>
+                            <p><strong>Phone Number:</strong> {{ session['phone_number'] }}</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <a  class="btn btn-success" href="/book_service/{{service.id}}">Confirm Booking</a>
                         </div>
                     </div>
                 </div>
-                <!-- Repeat similar cards for other categories -->
             </div>
+            {% endfor %}
+        </div>
+        <div class="text-end">
+            <a href="/view_service" class="btn btn-secondary">View More</a>
         </div>
     </div>
+    
+        
+        
 
-    <!-- Upcoming and Past Bookings -->
-    <div class="booking-section p-4 mb-4 bg-white rounded shadow-sm">
-        <h3>Your Bookings</h3>
-        <div class="row">
-            <div class="col-md-6">
-                <h5>Upcoming Bookings</h5>
-                <!-- Example booking item -->
-                <div class="booking-item mb-3 p-3 bg-light rounded shadow-sm">
-                    <h6>AC Repair</h6>
-                    <p>Date: 2024-11-10</p>
-                    <button class="btn btn-outline-secondary btn-sm">View Details</button>
-                    <button class="btn btn-outline-danger btn-sm">Cancel</button>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <h5>Past Bookings</h5>
-                <div class="booking-item mb-3 p-3 bg-light rounded shadow-sm">
-                    <h6>Plumbing Service</h6>
-                    <p>Date: 2024-10-20</p>
-                    <button class="btn btn-outline-secondary btn-sm">View Details</button>
-                    <button class="btn btn-outline-success btn-sm">Give Feedback</button>
-                </div>
-            </div>
+        
+    <div class="container my-5">
+        
+        <!-- Profile Overview -->
+        <!-- <div class="profile-overview p-4 mb-4 bg-white rounded shadow-sm">
+            <h3>Profile Overview</h3>
+            <p><strong>Name:</strong> {{ session.firstname }} {{ session.lastname }}</p>
+            <p><strong>Email:</strong> {{ session.email }}</p>
+            <p><strong>Address:</strong> {{ session.address }}</p>
+            <a href="/edit-profile" class="btn btn-primary btn-sm">Edit Profile</a>
+        </div> -->
+
+        <!-- Notifications and Updates -->
+        <div class="notifications p-4 mb-4 bg-white rounded shadow-sm">
+            <h3>Notifications</h3>
+            <ul>
+                <li>No new notifications</li>
+            </ul>
+        </div>
+
+        <!-- Customer Support -->
+        <div class="customer-support p-4 bg-light rounded shadow-sm text-center">
+            <h3>Need Help?</h3>
+            <p>Contact our support team for assistance.</p>
+            <a href="/support" class="btn btn-outline-primary">Contact Support</a>
         </div>
     </div>
-    <div class="booking-section">
-        <h3>Upcoming Bookings</h3>
-        <ul>
-            {% for booking in upcoming_bookings %}
-            <li>
-                <strong>{{ booking.service_id }}</strong> - {{ booking.booking_date }}
-                <a href="#" class="btn btn-outline-secondary btn-sm">View Details</a>
-                <a href="#" class="btn btn-outline-danger btn-sm">Cancel</a>
-            </li>
-            {% endfor %}
-        </ul>
-    
-        <h3>Past Bookings</h3>
-        <ul>
-            {% for booking in past_bookings %}
-            <li>
-                <strong>{{ booking.service_id }}</strong> - {{ booking.booking_date }}
-                <a href="#" class="btn btn-outline-secondary btn-sm">View Details</a>
-                <a href="#" class="btn btn-outline-success btn-sm">Give Feedback</a>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    
-    <!-- Profile Overview -->
-    <div class="profile-overview p-4 mb-4 bg-white rounded shadow-sm">
-        <h3>Profile Overview</h3>
-        <p><strong>Name:</strong> {{ session.firstname }} {{ session.lastname }}</p>
-        <p><strong>Email:</strong> {{ session.email }}</p>
-        <p><strong>Address:</strong> {{ session.address }}</p>
-        <a href="/edit-profile" class="btn btn-primary btn-sm">Edit Profile</a>
-    </div>
-
-    <!-- Notifications and Updates -->
-    <div class="notifications p-4 mb-4 bg-white rounded shadow-sm">
-        <h3>Notifications</h3>
-        <ul>
-            <li>No new notifications</li>
-        </ul>
-    </div>
-
-    <!-- Customer Support -->
-    <div class="customer-support p-4 bg-light rounded shadow-sm text-center">
-        <h3>Need Help?</h3>
-        <p>Contact our support team for assistance.</p>
-        <a href="/support" class="btn btn-outline-primary">Contact Support</a>
-    </div>
-</div>
 {% endblock %}

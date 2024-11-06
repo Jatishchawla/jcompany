@@ -45,12 +45,12 @@
 }
 
 .service-card:hover {
-    transform: scale(1.02);
+    transform: scale(1.1);
 }
 
 .service-card .card-img-top {
-    height: 150px;  /* Adjust as needed */
-    object-fit: cover;
+    height: 200px;  /* Adjust as needed */
+    object-fit:contain ;
 }
 
 .service-card .card-body {
@@ -71,4 +71,21 @@
 .service-card .btn {
     padding: 4px 8px;
     font-size: 0.85rem;
+}
+.modal-content {
+    text-align: center;
+    border-radius: 8px;
+  }
+  
+  .modal-header {
+    background-color: #007bff;
+    color: #fff;
+  }
+  
+  .modal-footer .btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+  }
+.model-body p{
+    text-align: left !important; 
 }

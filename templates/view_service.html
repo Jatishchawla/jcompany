@@ -1,0 +1,155 @@
+{%extends "base2.html"%}
+{%block head%}
+    <style>
+    /* .table-hover tbody tr:hover {
+        background-color: #e0f7fa; 
+    }
+    */
+    .custom-hover :hover{
+        background-color: #e0f7fa;
+    }
+
+    </style>
+{%endblock%}
+
+{%block content%}
+
+<div class="container mt-5">
+    <h2 class="mb-4">Available Services</h2>
+        {% if services %}
+        <table class="table table-bordered table-bordered table-hover">
+
+            <thead class="table-dark">
+                <tr>
+                    <th>S No.</th>
+                    <th>Service Name</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Duration (mins)</th>
+                    <th>Rating</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set counter = 1 %}
+                {% for service in services %}
+                    {% if service.status %}
+                    <tr class="{% if loop.index % 2 == 0 %}table-light {% else %}table-active{% endif %}">
+                            <td>{{loop.index}}</td>
+                            <td>{{ service.name }}</td>
+                            <td>{{ service.description }}</td>
+                            <td>{{ service.category.name }}</td>
+                            <td>Rs {{ service.price }}</td>
+                            <td>{{ service.duration }}</td>
+                            <td>{{ service.rating }} / 5</td>
+                            <td>
+                                <!-- <a href="#" class="btn btn-primary btn-sm">View Details</a> -->
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bookingModal{{ service.id }}">
+                                    Book Service
+                                </button>
+                            </td>
+                        </tr>
+                    {% endif %}
+                    <!-- Booking Modal with unique ID for each service -->
+                    <div class="modal fade" id="bookingModal{{ service.id }}" tabindex="-1" aria-labelledby="bookingModalLabel{{ service.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="bookingModalLabel{{ service.id }}">Service Booking Details</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <!-- Service Details -->
+                                    <h6>Service Information</h6>
+                                    <p><strong>Service Name:</strong> {{ service.name }}</p>
+                                    <p><strong>Category:</strong> {{ service.category_id }}</p>
+                                    <p><strong>Service Details</strong> {{service.description}}</p>
+                                    <p><strong>Duration:</strong> {{ service.duration }}</p>
+                                    <p><strong>Service Rating:</strong> {{ service.rating }}</p>
+                                    <p><strong>Price:</strong> Rs {{ service.price }}</p>                
+                                    <!-- User Details -->
+                                    <hr>
+                                    <h6>Your Information</h6>
+                                    <p><strong>Name:</strong> {{ session.firstname}} {{session.lastname}}</p>
+                                    <p><strong>Address:</strong> {{ session['address'] }}</p>
+                                    <p><strong>Phone Number:</strong> {{ session['phone_number'] }}</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <a  class="btn btn-success" href="/book_service/{{service.id}}">Confirm Booking</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No active services available at the moment.</p>
+    {% endif %}
+
+
+    <!-- {% if services %}
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Service Name</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Duration (mins)</th>
+                    <th>Rating</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in services %}
+                    {% if service.status %}
+                        <tr>
+                            <td>{{ service.name }}</td>
+                            <td>{{ service.description }}</td>
+                            <td>{{ service.category.name }}</td>
+                            <td>${{ service.price }}</td>
+                            <td>{{ service.duration }}</td>
+                            <td>{{ service.rating }} / 5</td>
+                            <td>
+                                <a href="#" class="btn btn-primary btn-sm">View Details</a>
+                                <a href="#" class="btn btn-secondary btn-sm">Book Service</a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No active services available at the moment.</p>
+    {% endif %} -->
+</div>
+
+
+<!-- <div class="container mt-5">
+    <h2 class="mb-4">Available Services</h2>
+
+    <div class="row">
+        {% for service in services %}
+
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ service.name }}</h5>
+                        <p class="card-text">{{ service.description }}</p>
+                        <p><strong>Category:</strong> {{ service.category.name }}</p>
+                        <p><strong>Price:</strong> ${{ service.price }}</p>
+                        <p><strong>Duration:</strong> {{ service.duration }} hrs</p>
+                        <p><strong>Rating:</strong> {{ service.rating }}</p>
+                        <a href="#" class="btn btn-primary">View Details</a>
+                        <a href="#" class="btn btn-secondary">Book Service</a>
+                    </div>
+                </div>
+            </div>
+        
+        {% endfor %}
+    </div>
+</div> -->
+{%endblock%}
