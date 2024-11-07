@@ -4,7 +4,23 @@
       href="{{url_for('static',filename='css/customer_dasboard.css')}}"
       rel="stylesheet"
     />
+    
     <style>
+        /* p{
+            color: white;
+        }
+        h3{
+            color: white;
+        }
+        h2{
+            color: white;
+        }
+        .bg-light{
+            background-color: #232527 !important;
+        }
+        .bg-white{
+            background-color: #141415 !important;
+        } */
         .table-responsive {
             position: relative;
         }
@@ -37,10 +53,29 @@
             text-overflow:inherit ;
             margin: 0;
         }
-
+        .star-rating {
+        direction: rtl;
+        display: inline-flex;
+        }
+        .star-rating input[type="radio"] {
+            display: none;
+        }
+        .star-rating label {
+            font-size: 1.5em;
+            color: #ccc;
+            cursor: pointer;
+        }
+        .star-rating input:checked ~ label {
+            color: gold;
+        }
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: gold;
+        }
 
     </style>
 {%endblock%}
+
 {% block content %}
 
 
@@ -69,8 +104,8 @@
     </div>
 
     <!-- Upcoming and Bookings history -->
-    <div class="container">
-        <div id="mybooking"  class="booking-section p-4 mb-4 bg-white rounded shadow-sm">
+    <!-- <div class="container"> -->
+        <div id="mybooking"  class="booking-section container p-4 mb-4 bg-white rounded shadow-sm">
             <h2>Your Bookings</h2>
             <hr>
             <!-- upcoming bookings  -->
@@ -83,17 +118,78 @@
                         <p>{{booking.booking_date}}</p>
                         <p><strong>assigned professional:</strong> {{booking.professional_id}}</p>
 
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bookingDetailsModal{{ booking.id }}">
-                            View Booking Details
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#bookingDetailsModal{{ booking.id }}">
+                            View Details
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#close_booking{{booking.id}}">
+                            Close Service
                         </button>
                         <a class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirm_cancel{{booking.id}}">Cancel</a >
                     </div>
                 </div>
+                <!-- close_booking -->
+                <div class="modal fade " id="close_booking{{booking.id}}" tabindex="-1" aria-labelledby="closeBookingModalLabel{{booking.id}}" aria-hidden="true" >
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header rounded"  >
+                                <h5 class="modal-title" id="closeBookingModalLabel{{ booking.id }}" >Service Remarks</h5>
+                                <button type="button" class="btn-close bg-white " data-bs-dismiss="modal" aria-label></button>
+                            </div>
+                            <div class="modal-bady">
+                                <form action="/close_booking/{{ booking.id }}" method="post">
+                                    <div class="mb-2">
+                                        <label class="form-label">Request ID: {{booking.id}}</label>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label">Service Name</label>
+                                            <input type="text" class="form-control" value="{{ booking.service.name }}" readonly>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label">Description</label>
+                                            <input type="text" class="form-control" value="{{ booking.service.description }}" readonly>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label">Booking Date</label>
+                                            <input type="text" class="form-control" value="{{ booking.booking_date }}" readonly>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label">Contact No.</label>
+                                            <input type="text" class="form-control" value="00" readonly>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label">Professional Name</label>
+                                            <input type="text" class="form-control" value="{{ booking.professional.name }}" readonly>
+                                        </div>
+                                    </div>
+                                    <label class="form-label">Service Rating:</label>
+                                    <div id="rating{{ booking.id }}" class="star-rating">
+                                        <input type="radio" id="star5{{ booking.id }}" name="rating{{ booking.id }}" value="5"><label for="star5{{ booking.id }}">&#9733;</label>
+                                        <input type="radio" id="star4{{ booking.id }}" name="rating{{ booking.id }}" value="4"><label for="star4{{ booking.id }}">&#9733;</label>
+                                        <input type="radio" id="star3{{ booking.id }}" name="rating{{ booking.id }}" value="3"><label for="star3{{ booking.id }}">&#9733;</label>
+                                        <input type="radio" id="star2{{ booking.id }}" name="rating{{ booking.id }}" value="2"><label for="star2{{ booking.id }}">&#9733;</label>
+                                        <input type="radio" id="star1{{ booking.id }}" name="rating{{ booking.id }}" value="1"><label for="star1{{ booking.id }}">&#9733;</label>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="remarks" class="form-label">Remarks (if any):</label>
+                                        <textarea class="form-control" id="remarks" name="remarks" rows="3"></textarea>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-primary">Submit</button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- confirm cancel -->
                 <div class="modal fade" id = "confirm_cancel{{booking.id}}">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
-                            <div class="modal-header bg-dark rounded ">
+                            <div class="modal-header  rounded ">
                                 <h5 class="modal-title">Confirm Cancelation</h5> 
                                 <button type="button" class="btn-close bg-white " data-bs-dismiss="modal" aria-label></button>
                             </div>
@@ -227,7 +323,7 @@
             </div>
             
         </div>
-    </div>
+    <!-- </div> -->
 
 
     <!-- Service Cards Section -->
@@ -236,7 +332,7 @@
         <div class="row">
             {% for service in services[:8] %}  <!-- Show only 8 services in the grid -->
             <div class="col-md-3 mb-4">  <!-- Adjust to fit 4 cards per row -->
-                <div class="card service-card h-100">
+                <div class="card bg-white service-card h-100">
                     <img src="{{ url_for('static', filename='/pic/service_pic_6.jpg') }}" class="card-img-top" alt="Service Image">
                     <div class="card-body">
                         <h5 class="card-title">{{ service.name }}</h5>

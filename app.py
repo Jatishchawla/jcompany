@@ -83,8 +83,10 @@ class Bookings(db.Model):
 
     service = db.relationship("Services", backref="bookings", lazy=True)
     user = db.relationship("User", backref="bookings", lazy=True)
+    professional = db.relationship("Professional" , backref="bookings" ,  lazy=True)
 
-    created_at      = db.Column(db.Date, default = datetime.utcnow)
+
+    # created_at      = db.Column(db.Date, default = datetime.utcnow) 
     updated_at      = db.Column(db.Date, default = datetime.utcnow)
 
 class Services(db.Model):
@@ -99,6 +101,7 @@ class Services(db.Model):
     status          = db.Column(db.Boolean, default =True ) # service_status = active/inactive
     created_at      = db.Column(db.Date,default = datetime.utcnow , nullable=False)
     updated_at      = db.Column(db.Date,default = datetime.utcnow , nullable=False)
+    category = db.relationship('ServiceCategory', backref='services', lazy=True)
 
 class  ServiceCategory(db.Model):
     __tablename__   = "ServiceCategory"
@@ -503,14 +506,26 @@ def signout():
 
 @app.route("/professional/dashboard")
 def professional_dashboard():
-    user=User.query.filter_by(uuid=session["uuid"])
-    professional = Professional.
-    if user:
-        bookings= [booking for booking in user.]
+    user=Professional.query.filter_by(uuid=session["uuid"]).first()
+    # services=Bookings.query.filter_by(Bookings.service.category_id=user.skill)
 
-        return render_template("/professional/professional_dashboard.html",user=user , bookings=bookings )
+# add category_id in professional table
+# make dropdown options for skills in register form of  professional
+# admin can add new categories , add column status , in category 
+# show only  active categories in dropdown options
+
+
+
+
+
+    # professional = Professional. 
+    if user:
+        # bookings= [booking for booking in Bookings ]
+
+        return render_template("/professional/professional_dashboard.html",user=user  )
     else:
         flash("You are not signed in" , "error")
+
 
 @app.route("/customer/dashboard", methods=["GET"])
 def customer_dashboard():
@@ -518,6 +533,7 @@ def customer_dashboard():
         # Retrieve the current user from the database using their UUID stored in the session
         user = User.query.filter_by(email=session["email"]).first()
 
+    
         if user:
             categories=ServiceCategory.query.all() 
             services = Services.query.limit(8).all()
@@ -540,6 +556,7 @@ def view_service():
     services = Services.query.all()
     return render_template('view_service.html', services=services)
 
+
 @app.route('/book_service/<int:service_id>')
 def book_service(service_id):
     if[session['role_id']==3]:
@@ -552,6 +569,29 @@ def book_service(service_id):
         return 404
 
 
+@app.route("/close_booking/<int:booking_id>" , methods=["post"])
+def close_booking(booking_id):
+    booking = Bookings.query.get(booking_id)
+    if booking:
+        if session["uuid"]==booking.cust_id :
+            rating = request.form.get("rating")
+            feedback = request.form.get("remarks")
+            booking.status = "closed"
+            booking.rating=rating
+            booking.feedback=feedback
+            booking.completion_date=datetime.utcnow()
+            booking.updated_at=datetime.utcnow()
+            db.session.commit()
+            flash("Booking Closed Successfully" ,"success")
+            return  redirect("/customer/dashboard")
+        else:
+            flash("User Not Mathced" ,"error")
+            return  redirect("/customer/dashboard")
+    else:
+        flash("Booking Not Found" ,"error")
+        return  redirect("/customer/dashboard")
+
+
 @app.route('/cancel_booking/<int:booking_id>' ,methods=["POST"])  
 def cancel_booking(booking_id):
     feedback = request.form.get("feedback")
@@ -562,6 +602,7 @@ def cancel_booking(booking_id):
             if(feedback):
                 booking.feedback = feedback
             booking.status="canceled"
+            booking.updated_at=datetime.utcnow()
             db.session.commit()
             flash("Booking has been canceled" , "success")
         else:
@@ -571,11 +612,13 @@ def cancel_booking(booking_id):
     return redirect("/customer/dashboard")
 
 
-@app.route("/edit/customer_profile", methods=["GET","POST"])
-def edit_customer_profile():
+@app.route("/user_profile", methods=["GET","POST"])
+def user_profile():
+    user=User.query.get(session['uuid']).first()
     # if request.method == "POST":
 
-    return render_template("/customer/edit_customer_profile.html")    
+
+    return render_template("/profile.html" , user=user)    
 
 @app.route("/user/dashboard/bookings" , methods=["GET"])
 def bookings():

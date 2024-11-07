@@ -89,3 +89,39 @@
 .model-body p{
     text-align: left !important; 
 }
+
+/* .modal-title {
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+.modal-body label {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.modal-content {
+    border-radius: 10px;
+}
+
+#closeBookingModal .form-control[readonly] {
+    background-color: #f8f9fa;
+}
+
+.modal-body .row .form-control {
+    border-radius: 5px;
+    background-color: #f5eaea;
+}
+
+.modal-body input[type="radio"] + label {
+    font-size: 1.5em;
+    color: #ff4d4d;
+    margin-right: 0.2em;
+    cursor: pointer;
+}
+
+textarea.form-control {
+    border-radius: 5px;
+    background-color: #fff5f5;
+}
+ */

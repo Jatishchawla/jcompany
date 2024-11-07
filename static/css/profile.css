@@ -1,0 +1,16 @@
+    /* Custom CSS for the profile layout */
+    .profile-container {
+        max-width: 800px;
+        margin: 30px auto;
+      }
+      .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      .profile-header img {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+      }

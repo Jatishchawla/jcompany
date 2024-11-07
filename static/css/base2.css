@@ -165,17 +165,14 @@ footer .bi {
   background-color: #e9ecef;
 }
 
-/* Background blur when modal is open */
-/* .modal-backdrop.show {
-  backdrop-filter: blur(5px);
-} */
 
 /* Blurred Background Effect for the Modal */
-.modal-backdrop {
-  backdrop-filter: blur(3px); /* Adjust the blur level as needed */
+/* Background blur when modal is open */
+.modal-backdrop.show {
+  backdrop-filter: blur(3px);
   background-color: rgba(255, 255, 255, 0.1); 
-  
 }
+
 
 /* Additional Styles to Center the Modal and Add Padding */
 .modal-content {
@@ -198,7 +195,7 @@ footer .bi {
 
 /*  */
 body {
-    background-color: #f8f9fa; /* Light background color for the body */
+    background-color: #ffffff; /* Light background color for the body */
     font-family: Arial, sans-serif; /* Font for the entire page */
 }
 
@@ -241,4 +238,30 @@ body {
 
 .modal-body a:hover {
     text-decoration: underline; /* Underline link on hover */
+}
+
+/* custom scrollbar */
+::-webkit-scrollbar {
+  width: 20px;
+  visibility: hidden; /* Hide by default */
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #d6dee1;
+  border-radius: 20px;
+  border: 6px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #a8bbbf;
+}
+
+/* Only show scrollbar when scrolling */
+*::-webkit-scrollbar {
+  visibility: visible;
 }
