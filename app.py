@@ -8,7 +8,7 @@ import bcrypt
 
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sampledb4.sqlite3"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sampledb5.sqlite3"
 app.config['SECRET_KEY']="key"
 db = SQLAlchemy(app)
 
@@ -25,10 +25,13 @@ class User(db.Model):
     pincode      = db.Column(db.Integer, nullable=False)
     role_id      = db.Column(db.Integer, nullable=False)  # 1 - admin , 2 - Professional , 3- customer
     phone_number = db.Column(db.Integer, nullable=False)
-    created_at   = db.Column(db.Date, default = datetime.utcnow, nullable = True)
-    updated_at   = db.Column(db.Date, default = datetime.utcnow, nullable = True)
+    created_at   = db.Column(db.Date, default = datetime.utcnow)
+    updated_at   = db.Column(db.Date, default = datetime.utcnow)
     profile_image= db.Column(db.String() )
+
     customer_bookings = db.relationship('Bookings', foreign_keys='Bookings.cust_id', backref='customer', lazy=True) 
+    # professional = db.relationship('Professional', uselist=False, back_populates='user')
+    
     def __init__(self, uuid , email, password, firstname, lastname, address, pincode, role_id, phone_number,profile_image):
         self.uuid = uuid
         self.email = email
@@ -41,10 +44,6 @@ class User(db.Model):
         self.role_id = role_id
         if(profile_image):
             self.profile_image=profile_image 
-        # self.created_at = datetime.utcnow
-        # self.updated_at = datetime.utcnow
-
-
 
     def check_password(self , password):
         return bcrypt.checkpw(password.encode('utf-8'), self.password)
@@ -54,20 +53,19 @@ class User(db.Model):
 
 class Professional(db.Model):
     __tablename__  = "Professional"
-    email          = db.Column(db.String() , nullable =False , unique = True )
     uuid           = db.Column(db.String(),  db.ForeignKey("User.uuid") , primary_key=True)
     salary         = db.Column(db.Integer)
     experience     = db.Column(db.Integer, nullable=False)
-    skill          = db.Column(db.String(),  nullable=False)
-    total_bookings = db.Column(db.Integer, nullable=False)
-    total_rating   = db.Column(db.Integer, nullable=False)
+    skill          = db.Column(db.String(),  nullable=False) 
+    rating_sum     = db.Column(db.Integer, default=0)
+    rated_services = db.Column(db.Integer, default=0) 
     status         = db.Column(db.Boolean , nullable=False , default = True  ) # active/inactive
-    # add a column to store salary in previous job (maybe not needed)
-    
-    created_at     = db.Column(db.Date,default = datetime.utcnow , nullable=False)
-    updated_at     = db.Column(db.Date,default = datetime.utcnow , nullable=False)
-    professional_bookings = db.relationship('Bookings', foreign_keys='Bookings.professional_id', backref='professional', lazy=True) 
+    cv_file_path   = db.Column(db.String(255) )
+    created_at     = db.Column(db.Date,default = datetime.utcnow )
+    updated_at     = db.Column(db.Date,default = datetime.utcnow )
+    user = db.relationship("User" , backref="professional" ,  lazy=True)
 
+    # professional_bookings = db.relationship('Bookings', foreign_keys='Bookings.professional_id', backref='professional', lazy=True) 
 
 class Bookings(db.Model):
     __tablename__   = "Bookings"
@@ -85,7 +83,6 @@ class Bookings(db.Model):
     user = db.relationship("User", backref="bookings", lazy=True)
     professional = db.relationship("Professional" , backref="bookings" ,  lazy=True)
 
-
     # created_at      = db.Column(db.Date, default = datetime.utcnow) 
     updated_at      = db.Column(db.Date, default = datetime.utcnow)
 
@@ -97,11 +94,12 @@ class Services(db.Model):
     category_id     = db.Column(db.Integer, db.ForeignKey("ServiceCategory.id"), nullable=False)
     price           = db.Column(db.Integer, nullable=False)
     duration        = db.Column(db.Integer, nullable=False)
-    rating          = db.Column(db.Float, default=0 )
+    rated_services  = db.Column(db.Integer, default=0 )
+    rating_sum      = db.Column(db.Integer, default=0 )
     status          = db.Column(db.Boolean, default =True ) # service_status = active/inactive
     created_at      = db.Column(db.Date,default = datetime.utcnow , nullable=False)
     updated_at      = db.Column(db.Date,default = datetime.utcnow , nullable=False)
-    category = db.relationship('ServiceCategory', backref='services', lazy=True)
+    # category        = db.relationship("ServiceCategory" , backref="services" , lazy=True)
 
 class  ServiceCategory(db.Model):
     __tablename__   = "ServiceCategory"
@@ -128,189 +126,196 @@ with app.app_context():
 @app.route("/fill")
 def fill_tables():
 
-    # new_category1=ServiceCategory(name="cleaning")
-    # new_category2=ServiceCategory(name="electrical")
-    # new_category3=ServiceCategory(name="plumbing")
-    # new_category4=ServiceCategory(name="maintenance")
+    new_category1=ServiceCategory(name="cleaning")
+    new_category2=ServiceCategory(name="electrical")
+    new_category3=ServiceCategory(name="plumbing")
+    new_category4=ServiceCategory(name="maintenance")
     
-    # db.session.add(new_category1)
-    # db.session.add(new_category2)
-    # db.session.add(new_category3)
-    # db.session.add(new_category4)
-    # db.session.commit()
+    db.session.add(new_category1)
+    db.session.add(new_category2)
+    db.session.add(new_category3)
+    db.session.add(new_category4)
+    db.session.commit()
 
-    # new_categories = [
-    #     ServiceCategory(name="health & wellness"), #5
-    #     ServiceCategory(name="beauty & personal care"),#6
-    #     ServiceCategory(name="automotive services"),#7
-    #     ServiceCategory(name="technology support"),#8
-    #     ServiceCategory(name="home improvement"),#9
-    #     ServiceCategory(name="education & tutoring"),#10
-    #     ServiceCategory(name="professional services"),#11
-    #     ServiceCategory(name="pest control"),#12
-    #     ServiceCategory(name="pet care"),#13
-    #     ServiceCategory(name="event services"),#14
-    #     ServiceCategory(name="fitness & sports"),#15
-    #     ServiceCategory(name="moving & relocation"),#16
-    #     ServiceCategory(name="appliance repair"),#17
-    #     ServiceCategory(name="security services"),#18
-    #     ServiceCategory(name="childcare"),#19
-    #     ServiceCategory(name="gardening & landscaping"),#20
-    #     ServiceCategory(name="legal & documentation"),#21
-    #     ServiceCategory(name="photography & videography"),#22
-    #     ServiceCategory(name="transportation & delivery"),#23
-    #     ServiceCategory(name="waste management"),#24
-    #     ServiceCategory(name="handyman services")#25
-    # ]
+    new_categories = [
+        ServiceCategory(name="health & wellness"), #5
+        ServiceCategory(name="beauty & personal care"),#6
+        ServiceCategory(name="automotive services"),#7
+        ServiceCategory(name="technology support"),#8
+        ServiceCategory(name="home improvement"),#9
+        ServiceCategory(name="education & tutoring"),#10
+        ServiceCategory(name="professional services"),#11
+        ServiceCategory(name="pest control"),#12
+        ServiceCategory(name="pet care"),#13
+        ServiceCategory(name="event services"),#14
+        ServiceCategory(name="fitness & sports"),#15
+        ServiceCategory(name="moving & relocation"),#16
+        ServiceCategory(name="appliance repair"),#17
+        ServiceCategory(name="security services"),#18
+        ServiceCategory(name="childcare"),#19
+        ServiceCategory(name="gardening & landscaping"),#20
+        ServiceCategory(name="legal & documentation"),#21
+        ServiceCategory(name="photography & videography"),#22
+        ServiceCategory(name="transportation & delivery"),#23
+        ServiceCategory(name="waste management"),#24
+        ServiceCategory(name="handyman services")#25
+    ]
 
-    # db.session.add_all(new_categories)
-    # db.session.commit()
+    db.session.add_all(new_categories)
+    db.session.commit()
 
 
 
-    # new_service_1 = Services(name="room cleaning" , category_id = 1 , price=1000 , description ="cleaning of rooms" ,
-    #                      duration=1)
-    # new_service_2 = Services(name="home cleaning" , category_id = 1 , price=1000 , description ="cleaning of home" ,
-    #                      duration=1)
-    # new_service_2 = Services(name="house cleaning" , category_id = 1 , price=1000 , description ="cleaning of house" ,
-    #                      duration=1)
-    # new_service_3 = Services(name="toilet cleaning" , category_id = 1 , price=1000 , description ="cleaning of toilet" ,
-    #                      duration=1)
-    # new_service_4 = Services(name="Ac Repair & Service" , category_id = 2 , price=1000 , description ="Ac Repair & Service" ,
-    #                      duration=1)
-    # new_service_5 = Services(name="Gyser Repair & Service" , category_id = 2 , price=1000 , description ="Gyser Repair & Service" ,
-    #                      duration=1)
-    # new_service_6 = Services(name="Pipe fitings" , category_id = 3 , price=1000 , description ="Pipe fitings" ,
-    #                      duration=1)
-    # new_service_7 = Services(name="plumbing related" , category_id = 3 , price=1000 , description ="plumbing related" ,
-    #                      duration=1)
-    # new_service_8 = Services(name="wall repair" , category_id = 4 , price=1000 , description ="repairing of walls" ,
-    #                      duration=1)
-    # db.session.add_all([new_service_1,new_service_2,new_service_3,new_service_4,new_service_5,new_service_6,new_service_7,new_service_8])
-    # db.session.commit()
+    new_service_1 = Services(name="room cleaning" , category_id = 1 , price=1000 , description ="cleaning of rooms" ,
+                         duration=1)
+    new_service_2 = Services(name="home cleaning" , category_id = 1 , price=3000 , description ="cleaning of home" ,
+                         duration=4)
+    new_service_3 = Services(name="ofiice cleaning" , category_id = 1 , price=2000 , description ="cleaning of office" ,
+                         duration=1)
+    new_service_4 = Services(name="toilet cleaning" , category_id = 1 , price=500 , description ="cleaning of toilet" ,
+                         duration=1)
+    new_service_5 = Services(name="Ac Repair & Service" , category_id = 2 , price=1000 , description ="Ac Repair & Service" ,
+                         duration=1)
+    new_service_6 = Services(name="Gyser Repair & Service" , category_id = 2 , price=1000 , description ="Gyser Repair & Service" ,
+                         duration=1)
+    new_service_7 = Services(name="Pipe fitings" , category_id = 3 , price=1000 , description ="Pipe fitings" ,
+                         duration=1)
+    new_service_8 = Services(name="plumbing related" , category_id = 3 , price=1000 , description ="plumbing related" ,
+                         duration=1)
+    new_service_9 = Services(name="wall repair" , category_id = 4 , price=1000 , description ="repairing of walls" ,
+                         duration=1)
+    db.session.add_all([new_service_1,new_service_2,new_service_3,new_service_4,new_service_5,new_service_6,new_service_7,new_service_8,new_service_9])
+    db.session.commit()
 
-    # new_services = [
-    #     # Cleaning Services
-    #     Services(name="deep cleaning", category_id=1, price=2000, description="thorough cleaning of the entire home", duration=3),
-    #     Services(name="window cleaning", category_id=1, price=800, description="cleaning windows inside and out", duration=2),
-    #     Services(name="carpet cleaning", category_id=1, price=1500, description="professional carpet cleaning", duration=2),
+    new_services = [
+        # Cleaning Services
+        Services(name="deep cleaning", category_id=1, price=5000, description="thorough cleaning of the entire home", duration=3),
+        Services(name="window cleaning", category_id=1, price=800, description="cleaning windows inside and out", duration=2),
+        Services(name="carpet cleaning", category_id=1, price=1500, description="professional carpet cleaning", duration=2),
         
-    #     # Electrical Services
-    #     Services(name="wiring installation", category_id=2, price=3000, description="new wiring for your home", duration=4),
-    #     Services(name="lighting installation", category_id=2, price=1200, description="installation of indoor and outdoor lighting", duration=2),
-    #     Services(name="outlet repair", category_id=2, price=500, description="repair faulty electrical outlets", duration=1),
+        # Electrical Services
+        Services(name="wiring installation", category_id=2, price=3000, description="new wiring for your home", duration=4),
+        Services(name="lighting installation", category_id=2, price=1200, description="installation of indoor and outdoor lighting", duration=2),
+        Services(name="outlet repair", category_id=2, price=500, description="repair faulty electrical outlets", duration=1),
         
-    #     # Plumbing Services
-    #     Services(name="faucet installation", category_id=3, price=700, description="installing new faucets", duration=1),
-    #     Services(name="drain cleaning", category_id=3, price=1000, description="cleaning clogged drains", duration=1),
-    #     Services(name="water heater installation", category_id=3, price=2500, description="installing a new water heater", duration=3),
+        # Plumbing Services
+        Services(name="faucet installation", category_id=3, price=700, description="installing new faucets", duration=1),
+        Services(name="drain cleaning", category_id=3, price=1000, description="cleaning clogged drains", duration=1),
+        Services(name="water heater installation", category_id=3, price=2500, description="installing a new water heater", duration=3),
         
-    #     # Maintenance Services
-    #     Services(name="home maintenance checkup", category_id=4, price=1500, description="annual maintenance check for your home", duration=2),
-    #     Services(name="furniture assembly", category_id=4, price=800, description="assembling furniture from flat-pack", duration=1),
+        # Maintenance Services
+        Services(name="home maintenance checkup", category_id=4, price=1500, description="annual maintenance check for your home", duration=2),
+        Services(name="furniture assembly", category_id=4, price=800, description="assembling furniture from flat-pack", duration=1),
         
-    #     # Health & Wellness Services
-    #     Services(name="personal training", category_id=5, price=1500, description="one-on-one personal training sessions", duration=1),
-    #     Services(name="yoga classes", category_id=5, price=1200, description="group yoga sessions", duration=1.5),
+        # Health & Wellness Services
+        Services(name="personal training", category_id=5, price=1500, description="one-on-one personal training sessions", duration=1),
+        Services(name="yoga classes", category_id=5, price=1200, description="group yoga sessions", duration=1.5),
         
-    #     # Beauty & Personal Care Services
-    #     Services(name="haircut & styling", category_id=6, price=500, description="professional haircut and styling", duration=1),
-    #     Services(name="makeup services", category_id=6, price=1200, description="professional makeup for events", duration=2),
+        # Beauty & Personal Care Services
+        Services(name="haircut & styling", category_id=6, price=500, description="professional haircut and styling", duration=1),
+        Services(name="makeup services", category_id=6, price=1200, description="professional makeup for events", duration=2),
         
-    #     # Automotive Services
-    #     Services(name="car wash", category_id=7, price=400, description="full exterior and interior car wash", duration=1),
-    #     Services(name="oil change", category_id=7, price=1000, description="oil change and filter replacement", duration=1),
+        # Automotive Services
+        Services(name="car wash", category_id=7, price=400, description="full exterior and interior car wash", duration=1),
+        Services(name="oil change", category_id=7, price=1000, description="oil change and filter replacement", duration=1),
         
-    #     # Technology Support Services
-    #     Services(name="computer setup", category_id=8, price=1500, description="setting up new computers and peripherals", duration=2),
-    #     Services(name="virus removal", category_id=8, price=800, description="removing viruses and malware from computers", duration=1),
+        # Technology Support Services
+        Services(name="computer setup", category_id=8, price=1500, description="setting up new computers and peripherals", duration=2),
+        Services(name="virus removal", category_id=8, price=800, description="removing viruses and malware from computers", duration=1),
 
-    #     # More services can be added similarly...
-    #      Services(name="interior painting", category_id=9, price=3500, description="painting the interior of the home", duration=4),
-    #     Services(name="flooring installation", category_id=9, price=4000, description="installing hardwood, laminate, or tile flooring", duration=5),
+        # More services can be added similarly...
+         Services(name="interior painting", category_id=9, price=3500, description="painting the interior of the home", duration=4),
+        Services(name="flooring installation", category_id=9, price=4000, description="installing hardwood, laminate, or tile flooring", duration=5),
 
-    #     # Education & Tutoring Services
-    #     Services(name="online tutoring", category_id=10, price=800, description="one-on-one online tutoring sessions", duration=1),
-    #     Services(name="homework help", category_id=10, price=600, description="assistance with homework and assignments", duration=1),
+        # Education & Tutoring Services
+        Services(name="online tutoring", category_id=10, price=800, description="one-on-one online tutoring sessions", duration=1),
+        Services(name="homework help", category_id=10, price=600, description="assistance with homework and assignments", duration=1),
 
-    #     # Professional Services
-    #     Services(name="legal consultation", category_id=11, price=3000, description="consultation with a legal expert", duration=1),
-    #     Services(name="financial planning", category_id=11, price=2000, description="personal financial planning services", duration=2),
+        # Professional Services
+        Services(name="legal consultation", category_id=11, price=3000, description="consultation with a legal expert", duration=1),
+        Services(name="financial planning", category_id=11, price=2000, description="personal financial planning services", duration=2),
 
-    #     # Pest Control Services
-    #     Services(name="general pest control", category_id=12, price=1500, description="treatment for common pests", duration=2),
-    #     Services(name="termite inspection", category_id=12, price=2000, description="inspection for termite infestations", duration=1.5),
+        # Pest Control Services
+        Services(name="general pest control", category_id=12, price=1500, description="treatment for common pests", duration=2),
+        Services(name="termite inspection", category_id=12, price=2000, description="inspection for termite infestations", duration=1.5),
 
-    #     # Pet Care Services
-    #     Services(name="dog walking", category_id=13, price=500, description="daily dog walking services", duration=1),
-    #     Services(name="pet grooming", category_id=13, price=1200, description="grooming services for pets", duration=1.5),
+        # Pet Care Services
+        Services(name="dog walking", category_id=13, price=500, description="daily dog walking services", duration=1),
+        Services(name="pet grooming", category_id=13, price=1200, description="grooming services for pets", duration=1.5),
 
-    #     # Event Services
-    #     Services(name="event planning", category_id=14, price=5000, description="complete event planning services", duration=8),
-    #     Services(name="catering services", category_id=14, price=3000, description="catering for events and parties", duration=3),
+        # Event Services
+        Services(name="event planning", category_id=14, price=5000, description="complete event planning services", duration=8),
+        Services(name="catering services", category_id=14, price=3000, description="catering for events and parties", duration=3),
 
-    #     # Fitness & Sports Services
-    #     Services(name="personal training sessions", category_id=15, price=1500, description="personal training for fitness goals", duration=1),
-    #     Services(name="group fitness classes", category_id=15, price=800, description="join group fitness sessions", duration=1),
+        # Fitness & Sports Services
+        Services(name="personal training sessions", category_id=15, price=1500, description="personal training for fitness goals", duration=1),
+        Services(name="group fitness classes", category_id=15, price=800, description="join group fitness sessions", duration=1),
 
-    #     # Moving & Relocation Services
-    #     Services(name="local moving", category_id=16, price=3000, description="moving services within the local area", duration=4),
-    #     Services(name="packing services", category_id=16, price=1200, description="packing services for relocations", duration=2),
+        # Moving & Relocation Services
+        Services(name="local moving", category_id=16, price=3000, description="moving services within the local area", duration=4),
+        Services(name="packing services", category_id=16, price=1200, description="packing services for relocations", duration=2),
 
-    #     # Appliance Repair Services
-    #     Services(name="washing machine repair", category_id=17, price=1500, description="repair services for washing machines", duration=2),
-    #     Services(name="refrigerator repair", category_id=17, price=2000, description="repair services for refrigerators", duration=3),
+        # Appliance Repair Services
+        Services(name="washing machine repair", category_id=17, price=1500, description="repair services for washing machines", duration=2),
+        Services(name="refrigerator repair", category_id=17, price=2000, description="repair services for refrigerators", duration=3),
 
-    #     # Security Services
-    #     Services(name="home security installation", category_id=18, price=2500, description="installation of home security systems", duration=3),
-    #     Services(name="security patrol services", category_id=18, price=3000, description="security patrol for properties", duration=4),
+        # Security Services
+        Services(name="home security installation", category_id=18, price=2500, description="installation of home security systems", duration=3),
+        Services(name="security patrol services", category_id=18, price=3000, description="security patrol for properties", duration=4),
 
-    #     # Childcare Services
-    #     Services(name="nanny services", category_id=19, price=2000, description="full-time or part-time nanny services", duration=8),
-    #     Services(name="babysitting services", category_id=19, price=800, description="occasional babysitting services", duration=2),
+        # Childcare Services
+        Services(name="nanny services", category_id=19, price=2000, description="full-time or part-time nanny services", duration=8),
+        Services(name="babysitting services", category_id=19, price=800, description="occasional babysitting services", duration=2),
 
-    #     # Gardening & Landscaping Services
-    #     Services(name="lawn care", category_id=20, price=1000, description="care and maintenance of lawns", duration=2),
-    #     Services(name="landscaping design", category_id=20, price=3000, description="designing and installing landscapes", duration=4),
+        # Gardening & Landscaping Services
+        Services(name="lawn care", category_id=20, price=1000, description="care and maintenance of lawns", duration=2),
+        Services(name="landscaping design", category_id=20, price=3000, description="designing and installing landscapes", duration=4),
 
-    #     # Legal & Documentation Services
-    #     Services(name="will writing", category_id=21, price=1500, description="writing legal wills", duration=2),
-    #     Services(name="contract drafting", category_id=21, price=2500, description="drafting contracts and agreements", duration=3),
+        # Legal & Documentation Services
+        Services(name="will writing", category_id=21, price=1500, description="writing legal wills", duration=2),
+        Services(name="contract drafting", category_id=21, price=2500, description="drafting contracts and agreements", duration=3),
 
-    #     # Photography & Videography Services
-    #     Services(name="event photography", category_id=22, price=4000, description="photography for events", duration=4),
-    #     Services(name="video editing services", category_id=22, price=2500, description="editing video content for clients", duration=3),
+        # Photography & Videography Services
+        Services(name="event photography", category_id=22, price=4000, description="photography for events", duration=4),
+        Services(name="video editing services", category_id=22, price=2500, description="editing video content for clients", duration=3),
 
-    #     # Transportation & Delivery Services
-    #     Services(name="parcel delivery", category_id=23, price=800, description="delivery of parcels and packages", duration=1),
-    #     Services(name="airport transfer services", category_id=23, price=2500, description="transfers to and from the airport", duration=2),
+        # Transportation & Delivery Services
+        Services(name="parcel delivery", category_id=23, price=800, description="delivery of parcels and packages", duration=1),
+        Services(name="airport transfer services", category_id=23, price=2500, description="transfers to and from the airport", duration=2),
 
-    #     # Waste Management Services
-    #     Services(name="garbage collection", category_id=24, price=1000, description="regular garbage collection services", duration=2),
-    #     Services(name="recycling services", category_id=24, price=800, description="recycling of various materials", duration=1),
+        # Waste Management Services
+        Services(name="garbage collection", category_id=24, price=1000, description="regular garbage collection services", duration=2),
+        Services(name="recycling services", category_id=24, price=800, description="recycling of various materials", duration=1),
 
-    #     # Handyman Services
-    #     Services(name="furniture repair", category_id=25, price=1200, description="repairing and restoring furniture", duration=2),
-    #     Services(name="small home repairs", category_id=25, price=800, description="handling minor repairs around the house", duration=1)
+        # Handyman Services
+        Services(name="furniture repair", category_id=25, price=1200, description="repairing and restoring furniture", duration=2),
+        Services(name="small home repairs", category_id=25, price=800, description="handling minor repairs around the house", duration=1)
 
-    # ]
+    ]
 
-    # db.session.add_all(new_services)
-    # db.session.commit()
+    db.session.add_all(new_services)
+    db.session.commit()
 
 
 
-    # id=uuid.uuid4()
-    # customer1 = User(uuid = str(id) ,email="p1@gmail.com" , password = "1234" , firstname="p1", lastname="p1",
-    #                             address="address" , pincode="111111", phone_number=1234567890
-    #                 ,role_id = 3  )
+    id=uuid.uuid4()
+    customer1 = User(uuid = str(id) ,email="c1@gmail.com" , password = "1234" , firstname="c1", lastname="c1",
+                                address="address" , pincode="111111", phone_number=9138394488
+                    ,role_id = 3  ,profile_image= None)
     
-    # id1=uuid.uuid4()
-    # admin= User(uuid = str(id1) ,email="admin@gmail.com" , password = "1111" , firstname="admin", lastname="admin",
-    #                             address="address" , pincode="111111", phone_number=1234567890
-    #                 ,role_id = 1 )
-    # db.session.add_all([cu stomer1 , admin] )
-    # db.session.commit()
+    id1=uuid.uuid4()
+    professional1 = User(uuid = str(id1) ,email="p1@gmail.com" , password = "1234" , firstname="p1", lastname="p1",
+                            address="address" , pincode="111111", phone_number=8708063057
+                            ,role_id = 2 ,profile_image= None )
+                    
+    professional_details= Professional(uuid=str(id1), skill="cleaning" , experience=1  )
+    
+    id2=uuid.uuid4()
+    admin= User(uuid = str(id2) ,email="admin@gmail.com" , password = "1111" , firstname="admin", lastname="admin",
+                                address="address" , pincode="111111", phone_number=1234567890
+                    ,role_id = 1 ,profile_image= None )
+    db.session.add_all([customer1 , admin , professional1,professional_details ] )
+    db.session.commit()
     
     return "done"
 
@@ -326,15 +331,12 @@ def home():
 def register():
     
     if (request.method == "POST"):
-        
-        # print(request.form)
         email = request.form.get("email")
-        password = request.form.get("password")
-        
+        password = request.form.get("password")  
         # Ensure password is not None or empty
         if not password:
             flash("Password Required")
-            return redirect(url_for('register'))
+            return redirect("/register")
         
         user = User.query.filter_by(email=email).first()
         if user:
@@ -345,7 +347,6 @@ def register():
         # db wala code
         firstname = request.form.get("firstname")
         lastname     =request.form.get("lastname")
-        role_id      = 3
         address      =request.form.get("address")
         pincode      =request.form.get("pincode")
         phone_number =request.form.get("phonenumber")
@@ -353,16 +354,10 @@ def register():
         
         new_registration = User(uuid = str(id) ,email=email , password = password , firstname=firstname, lastname=lastname,
                                 address=address , pincode=pincode, phone_number=phone_number
-                                # ,created_at=datetime.utcnow(), updated_at=datetime.utcnow()
                                 ,role_id = 3 , profile_image=profile_image  )
 
         db.session.add(new_registration)
         db.session.commit()
-
-        
-        # user = User.query.filter_by(email=email).first()      ____
-        #                                                             |___               
-        # session['user'] = user.id                             ____|
 
         flash( "REGISTERED SUCCESSFULLY !" ,"success" )
         return redirect(url_for("login")) # REDIRECT TO LOGIN PAGE !
@@ -384,7 +379,7 @@ def professional_register():
         # Ensure password is not None or empty
         if not password:
             flash("Password is required")
-            return redirect("/login")
+            return redirect("/professional/register")
         
         user = User.query.filter_by(email=email).first()
         if user:
@@ -393,10 +388,7 @@ def professional_register():
                 return redirect(url_for('login'))
         
         # db wala code
-
         id = uuid.uuid4()
-
-        # print('Your UUID is: ' + str(myuuid))
 
         firstname = request.form.get("firstname")
         lastname     =request.form.get("lastname")
@@ -405,33 +397,19 @@ def professional_register():
         pincode      =request.form.get("pincode")
         phone_number =request.form.get("phonenumber")
         profile_image =request.form.get("profile_image")
-
-        salary = 0
         experience = request.form.get("experience")
         skill=request.form.get("skill")
-        # total_bookings=request.form.get("total_bookings")
-        # =request.form.get("")
-        # =request.form.get("")
-        # =request.form.get("")
-        # total_rating=request.form.get("total_rating")
 
         new_user_registration = User(uuid=str(id), email=email , password = password , firstname=firstname, lastname=lastname,
                                 address=address , pincode=pincode, phone_number=phone_number,
                                 role_id = 2 , profile_image=profile_image  )
         
 
-        new_professional_registration= Professional(uuid=str(id), email=email,salary=salary , skill=skill , experience=experience , total_bookings=0 , 
-                                                total_rating=0 ,created_at=datetime.utcnow(), updated_at=datetime.utcnow() 
-                                                )
+        new_professional_registration= Professional(uuid=str(id), skill=skill , experience=experience,)
         
         db.session.add(new_professional_registration)
         db.session.add(new_user_registration)
         db.session.commit()
-
-        
-        # user = User.query.filter_by(email=email).first()      ____
-        #                                                             |___               
-        # session['user'] = user.id                             ____|
 
         flash( "REGISTERED SUCCESSFULLY !" , "success" )
         return redirect(url_for("login")) # REDIRECT TO  LOGIN PAGE !
@@ -506,26 +484,49 @@ def signout():
 
 @app.route("/professional/dashboard")
 def professional_dashboard():
-    user=Professional.query.filter_by(uuid=session["uuid"]).first()
+    user=Professional.query.get(session["uuid"])
+    active_services = Bookings.query.join(Services).join(ServiceCategory).filter(
+        ServiceCategory.name == user.skill ,
+        Bookings.status=="active"
+    ).all()
+    service_history=Bookings.query.join(Services).join(ServiceCategory).filter(
+        Bookings.professional_id ==user.uuid, 
+        Bookings.status=="closed" 
+    ).all()
     # services=Bookings.query.filter_by(Bookings.service.category_id=user.skill)
 
 # add category_id in professional table
 # make dropdown options for skills in register form of  professional
 # admin can add new categories , add column status , in category 
 # show only  active categories in dropdown options
+# 1 professional can accept upto 3 request at any point
+# 
 
 
 
-
-
-    # professional = Professional. 
     if user:
         # bookings= [booking for booking in Bookings ]
 
-        return render_template("/professional/professional_dashboard.html",user=user  )
+        return render_template("/professional/professional_dashboard.html",user=user  ,today_services=active_services , service_history=service_history)
+
     else:
         flash("You are not signed in" , "error")
 
+@app.route('/accept_booking/<int:booking_id>/<string:professional_id>', methods=['POST'])
+def accept_booking(booking_id , professional_id):
+
+    booking = Bookings.query.get_or_404(booking_id)
+
+    if booking.status == "accepted":
+        flash(f"This booking has already been accepted by {booking.professional.name} ", "info")
+        return redirect(url_for('professional_dashboard'))
+
+    booking.status = "accepted"
+    booking.professional_id=professional_id
+    db.session.commit()
+
+    flash("Booking accepted successfully!", "success")
+    return redirect("/professional/dashboard")
 
 @app.route("/customer/dashboard", methods=["GET"])
 def customer_dashboard():
@@ -533,7 +534,6 @@ def customer_dashboard():
         # Retrieve the current user from the database using their UUID stored in the session
         user = User.query.filter_by(email=session["email"]).first()
 
-    
         if user:
             categories=ServiceCategory.query.all() 
             services = Services.query.limit(8).all()
@@ -574,13 +574,23 @@ def close_booking(booking_id):
     booking = Bookings.query.get(booking_id)
     if booking:
         if session["uuid"]==booking.cust_id :
-            rating = request.form.get("rating")
+            professional = Professional.query.get(booking.professional_id)
+            service=Services.query.get(booking.service_id)
+            print(booking.professional_id)
+            rating = int(request.form.get("rating") or 0)
             feedback = request.form.get("remarks")
             booking.status = "closed"
             booking.rating=rating
             booking.feedback=feedback
             booking.completion_date=datetime.utcnow()
             booking.updated_at=datetime.utcnow()
+            
+            professional.rating_sum += rating
+            professional.rated_services += 1
+
+            service.rating_sum += rating
+            service.rated_services += 1
+
             db.session.commit()
             flash("Booking Closed Successfully" ,"success")
             return  redirect("/customer/dashboard")
@@ -614,7 +624,7 @@ def cancel_booking(booking_id):
 
 @app.route("/user_profile", methods=["GET","POST"])
 def user_profile():
-    user=User.query.get(session['uuid']).first()
+    user = User.query.get(session['uuid'])
     # if request.method == "POST":
 
 

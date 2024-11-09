@@ -155,11 +155,18 @@
                                         </div>
                                         <div class="col-md-6 mb-2">
                                             <label class="form-label">Contact No.</label>
-                                            <input type="text" class="form-control" value="00" readonly>
+                                            <input type="text" class="form-control" value="{{ booking.professional.user.firstname }}" readonly>
                                         </div>
                                         <div class="col-md-6 mb-2">
                                             <label class="form-label">Professional Name</label>
-                                            <input type="text" class="form-control" value="{{ booking.professional.name }}" readonly>
+                                            <input type="text" class="form-control" 
+                                            
+                                            {% if booking.professional %}
+                                                value="{{ booking.professional.user.firstname }} {{ booking.professional.user.lastname }}"
+                                            {% else %}
+                                               value="No professional assigned"
+                                            {% endif %} 
+                                            readonly>
                                         </div>
                                     </div>
                                     <label class="form-label">Service Rating:</label>
@@ -197,6 +204,7 @@
                                 <p>Are you sure you want to cancel this booking?</p>
                                 <p><strong>Service Name: </strong>  {{booking.service.name}}</p>
                                 <p><strong>Booking Date: </strong>  {{booking.booking_date}}</p>
+                                <p><strong>Booking status: </strong>  {{booking.status}}</p>
                                 <hr>
                                 <!-- get user reviews-->
                                 <form action="/cancel_booking/{{booking.id}}" method="POST" style="display: inline;">
@@ -222,14 +230,19 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label></button>
                             </div>
                             <div class="modal-body">
-                                <h5>Booking details</h5>
                                 <p><strong>Service Name:</strong> {{booking.service.name}}</p>
                                 <p><strong>Description:</strong> {{booking.service.description}}</p>
                                 <p><strong>Price: </strong>Rs {{booking.service.price}}</p>
                                 <p><strong>Duration:</strong> {{booking.service.duration}} minutes</p>
                                 <p><strong>status:</strong> {{booking.status}}</p>
-                                <p><strong>assigned professional:</strong> {{booking.professional_id}}</p>
-
+                                <hr>
+                                <p><strong>Assigned Professional: </strong>
+                                    {% if booking.professional %}
+                                        {{ booking.professional.user.firstname }} {{ booking.professional.user.lastname }}
+                                    {% else %}
+                                        No professional assigned yet
+                                    {% endif %}
+                                </p>
                                 <hr>
                                 <p><strong>booking Address:</strong> {{booking.user.address}}</p>
                                 <p><strong>Customer Name:</strong> {{booking.user.firstname}} {{booking.user.lastname}}</p>
