@@ -42,7 +42,12 @@
                             <td>{{ service.category.name }}</td>
                             <td>Rs {{ service.price }}</td>
                             <td>{{ service.duration }}</td>
-                            <td>{{ service.rating }} / 5</td>
+                            <td>{%if service.rating_sum != 0 and service.rated_services!=0 %}
+                                {{ service.rating_sum/service.rated_services }}
+                               {%else%}
+                               0
+                               {%endif%}
+                            </td>
                             <td>
                                 <!-- <a href="#" class="btn btn-primary btn-sm">View Details</a> -->
                                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bookingModal{{ service.id }}">
@@ -66,7 +71,13 @@
                                     <p><strong>Category:</strong> {{ service.category_id }}</p>
                                     <p><strong>Service Details</strong> {{service.description}}</p>
                                     <p><strong>Duration:</strong> {{ service.duration }}</p>
-                                    <p><strong>Service Rating:</strong> {{ service.rating }}</p>
+                                    <p><strong>Service Rating:</strong>
+                                        {%if service.rating_sum != 0 and service.rated_services!=0 %}
+                                         {{ service.rating_sum/service.rated_services }}
+                                        {%else%}
+                                        0
+                                        {%endif%}
+                                        </p>
                                     <p><strong>Price:</strong> Rs {{ service.price }}</p>                
                                     <!-- User Details -->
                                     <hr>

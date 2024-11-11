@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect ,flash, url_for
 from flask import session
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime 
+from datetime import datetime
 import pandas as pd
 import uuid
 import bcrypt
@@ -29,7 +29,7 @@ class User(db.Model):
     updated_at   = db.Column(db.Date, default = datetime.utcnow)
     profile_image= db.Column(db.String() )
 
-    customer_bookings = db.relationship('Bookings', foreign_keys='Bookings.cust_id', backref='customer', lazy=True) 
+    customer_bookings = db.relationship('Bookings', foreign_keys='Bookings.cust_id', back_populates='customer', lazy=True) 
     # professional = db.relationship('Professional', uselist=False, back_populates='user')
     
     def __init__(self, uuid , email, password, firstname, lastname, address, pincode, role_id, phone_number,profile_image):
@@ -75,12 +75,13 @@ class Bookings(db.Model):
     service_id      = db.Column(db.Integer, db.ForeignKey("Services.id") ,  nullable=False)
     status          = db.Column(db.String(), nullable=False ,default = "active")
     booking_date    = db.Column(db.Date, nullable=False ,  default = datetime.utcnow)
+    request_date     = db.Column(db.Date)
     completion_date = db.Column(db.Date)
     feedback        = db.Column(db.String())
     rating          = db.Column(db.Float, default=0)
 
     service = db.relationship("Services", backref="bookings", lazy=True)
-    user = db.relationship("User", backref="bookings", lazy=True)
+    customer = db.relationship("User", back_populates="customer_bookings", lazy=True)   #customer
     professional = db.relationship("Professional" , backref="bookings" ,  lazy=True)
 
     # created_at      = db.Column(db.Date, default = datetime.utcnow) 
@@ -423,7 +424,7 @@ def professional_register():
 def login():
     
     if "firstname" in session:
-        flash("Please Sign Out First"),400
+        flash("Please Sign Out First","info")
         return redirect(url_for("customer_dashboard"))
      
     if (request.method == "POST"):
@@ -434,7 +435,7 @@ def login():
 
         # if not then register
         if not user:
-            flash("please create account first" , "info"),400
+            flash("please create account first" , "info")
             return redirect(url_for("register"))
 
         if user:
@@ -484,33 +485,33 @@ def signout():
 
 @app.route("/professional/dashboard")
 def professional_dashboard():
-    user=Professional.query.get(session["uuid"])
-    active_services = Bookings.query.join(Services).join(ServiceCategory).filter(
-        ServiceCategory.name == user.skill ,
-        Bookings.status=="active"
-    ).all()
-    service_history=Bookings.query.join(Services).join(ServiceCategory).filter(
-        Bookings.professional_id ==user.uuid, 
-        Bookings.status=="closed" 
-    ).all()
-    # services=Bookings.query.filter_by(Bookings.service.category_id=user.skill)
+    if(session):
+        if(session["role_id"]==2):
+            user=Professional.query.get(session["uuid"])
+            active_services = Bookings.query.join(Services).join(ServiceCategory).filter(
+                ServiceCategory.name == user.skill ,Bookings.status=="active").all()
+            service_history=Bookings.query.join(Services).join(ServiceCategory).filter(
+                Bookings.professional_id ==user.uuid, Bookings.status=="closed" ).all()
 
-# add category_id in professional table
-# make dropdown options for skills in register form of  professional
-# admin can add new categories , add column status , in category 
-# show only  active categories in dropdown options
-# 1 professional can accept upto 3 request at any point
-# 
-
-
-
-    if user:
-        # bookings= [booking for booking in Bookings ]
-
-        return render_template("/professional/professional_dashboard.html",user=user  ,today_services=active_services , service_history=service_history)
-
+            # services=Bookings.query.filter_by(Bookings.service.category_id=user.skill)
+            # add category_id in professional table
+            # make dropdown options for skills in register form of  professional
+            # admin can add new categories , add column status , in category 
+            # show only  active categories in dropdown options
+            # 1 professional can accept upto 3 request at any point
+         
+            if user:
+                # bookings= [booking for booking in Bookings ]
+                return render_template("/professional/professional_dashboard.html",user=user  ,today_services=active_services , service_history=service_history)
+            else:
+                flash("user not found" , "error")
+                return redirect("/professional/dashboard")
+        else:
+            flash("Only Professionals are allowed" , "error")
+            return redirect("/")
     else:
         flash("You are not signed in" , "error")
+        return redirect("/")
 
 @app.route('/accept_booking/<int:booking_id>/<string:professional_id>', methods=['POST'])
 def accept_booking(booking_id , professional_id):
@@ -549,7 +550,7 @@ def customer_dashboard():
         return redirect('/')
     
 
-@app.route('/view_service/')
+@app.route("/viewservice" ,methods=["GET","POST"])
 def view_service():
     # view all services
     # Fetch the specific service details from the database
@@ -557,17 +558,46 @@ def view_service():
     return render_template('view_service.html', services=services)
 
 
-@app.route('/book_service/<int:service_id>')
+@app.route('/book_service/<int:service_id>'  , methods=["POST"])
 def book_service(service_id):
     if[session['role_id']==3]:
-        booking = Bookings(service_id=service_id , cust_id = session["uuid"] )
+        request_date_str = request.form.get("request_date")
+        
+        if request_date_str:
+            request_date = datetime.strptime(request_date_str, '%Y-%m-%d').date()
+            booking = Bookings(service_id=service_id , cust_id = session["uuid"] ,request_date=request_date )
         db.session.add(booking)
         db.session.commit()
+        
         flash("Booking Successful" , "success")
         return redirect("/customer/dashboard")
     else:
         return 404
 
+@app.route('/update_request_date/<int:booking_id>', methods=["POST"])
+def update_request_date(booking_id):
+    try:
+        # Get the new request date from the form
+        request_date_str = request.form.get("request_date")
+        if request_date_str:
+            # Convert to date object for SQLite
+            request_date = datetime.strptime(request_date_str, '%Y-%m-%d').date()
+
+            # Fetch booking and update the request date
+            booking = Bookings.query.get(booking_id)
+            if booking:
+                booking.request_date = request_date
+                booking.updated_at = datetime.utcnow()
+                db.session.commit()
+                flash("Request date updated successfully!", "success")
+            else:
+                flash("Booking not found.", "error")
+        else:
+            flash("Please select a valid date.", "error")
+    except Exception as e:
+        flash("An error occurred: " + str(e), "error")
+
+    return redirect("/customer/dashboard")
 
 @app.route("/close_booking/<int:booking_id>" , methods=["post"])
 def close_booking(booking_id):
@@ -585,11 +615,11 @@ def close_booking(booking_id):
             booking.completion_date=datetime.utcnow()
             booking.updated_at=datetime.utcnow()
             
-            professional.rating_sum += rating
-            professional.rated_services += 1
+            professional.rating_sum = professional.rating + rating
+            professional.rated_services = professional.rated_services + 1
 
-            service.rating_sum += rating
-            service.rated_services += 1
+            service.rating_sum = service.rating_sum + rating
+            service.rated_services = service.rated_services + 1
 
             db.session.commit()
             flash("Booking Closed Successfully" ,"success")
