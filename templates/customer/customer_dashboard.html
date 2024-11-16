@@ -115,7 +115,11 @@
                 <div class="col-md-6">
                     <div class="booking-item mb-3 p-3 bg-light rounded shadow-sm">
                         <h6>{{booking.service.name}}</h6>
-                        <p>{{booking.request_date}}</p>
+                        {% if booking.service %}
+                            <p>{{booking.request_date}}</p>
+                        {% else %}
+                            <em colspan="4">Service no longer available</em>
+                        {% endif %}
 
                         {% if booking.professional %}
                         <p><strong>assigned professional:</strong> {{booking.professional.user.firstname}}</p>
@@ -127,9 +131,11 @@
                         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#bookingDetailsModal{{ booking.id }}">
                             View / Edit
                         </button>
+                        {% if booking.professional_id %}
                         <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#close_booking{{booking.id}}">
                             Close Service
                         </button>
+                        {% endif %}
                         <a class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirm_cancel{{booking.id}}">Cancel</a >
                     </div>
                 </div>
@@ -147,6 +153,7 @@
                                         <label class="form-label">Request ID: {{booking.id}}</label>
                                     </div>
                                     <div class="row">
+                                        {% if booking.service %}
                                         <div class="col-md-6 mb-2">
                                             <label class="form-label">Service Name</label>
                                             <input type="text" class="form-control" value="{{ booking.service.name }}" readonly>
@@ -156,18 +163,21 @@
                                             <input type="text" class="form-control" value="{{ booking.service.description }}" readonly>
                                         </div>
                                         <div class="col-md-6 mb-2">
-                                            <label class="form-label">Booking Date</label>
-                                            <input type="text" class="form-control" value="{{ booking.booking_date }}" readonly>
+                                            <label class="form-label">Service Request Date</label>
+                                            <input type="text" class="form-control" value="{{ booking.request_date }}" readonly>
                                         </div>
+                                        {% else %}
+                                            <em colspan="4">Service no longer available</em>
+                                        {% endif %}
                                         <div class="col-md-6 mb-2">
                                             <label class="form-label">Contact No.</label>
                                             <input type="text" class="form-control" 
-                                            value="
+                                            
                                             {% if booking.professional %}
-                                                {{ booking.professional.user.firstname }} {{ booking.professional.user.lastname }} 
+                                                value="{{ booking.professional.user.phone_number }}"
                                                 {% else %}
-                                                No professional assigned
-                                            {% endif %} "
+                                                value="No professional assigned yet"
+                                            {% endif %} 
                                             readonly>
                                             </div>
                                         <div class="col-md-6 mb-2">
@@ -177,7 +187,7 @@
                                             {% if booking.professional %}
                                                 value="{{ booking.professional.user.firstname }} {{ booking.professional.user.lastname }}"
                                             {% else %}
-                                               value="No professional assigned"
+                                               value="No professional assigned yet"
                                             {% endif %} 
                                             readonly>
                                         </div>
@@ -217,6 +227,7 @@
                                 <p>Are you sure you want to cancel this booking?</p>
                                 <p><strong>Service Name: </strong>  {{booking.service.name}}</p>
                                 <p><strong>Booking Date: </strong>  {{booking.booking_date}}</p>
+                                <p><strong>Request Date: </strong>  {{booking.request_date}}</p>
                                 <p><strong>Booking status: </strong>  {{booking.status}}</p>
                                 <hr>
                                 <!-- get customer reviews-->
@@ -319,7 +330,7 @@
                                                 <div class="modal-content">
                                                     <div class="modal-header">
                                                         <h5 class="modal-title" id="bookingDetailsModal{{booking.id}}">Booking Details</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label></button>
+                                                        <button type="button" class="btn-close bg-white" data-bs-dismiss="modal" aria-label></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <h5>Booking details</h5>
@@ -403,7 +414,13 @@
                                 <p><strong>Category:</strong> {{ service.category_id }}</p>
                                 <p><strong>Service Details:</strong> {{ service.description }}</p>
                                 <p><strong>Duration:</strong> {{ service.duration }}</p>
-                                <p><strong>Service Rating:</strong> {{ service.rating }}</p>
+                                <p><strong>Service Rating:</strong> 
+                                    {% if service.rated_services!=0 %}
+                                    {{ service.rating_sum/service.rated_services }}
+                                    {% else %}
+                                    0.0
+                                    {% endif %}
+                                </p>
                                 <p><strong>Price:</strong> Rs {{ service.price }}</p>                
             
                                 <!-- Customer Details -->

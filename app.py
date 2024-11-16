@@ -26,7 +26,7 @@ class User(db.Model):
     role_id      = db.Column(db.Integer, nullable=False)  # 1 - admin , 2 - Professional , 3- customer
     phone_number = db.Column(db.Integer, nullable=False)
     created_at   = db.Column(db.Date, default = datetime.utcnow)
-    updated_at   = db.Column(db.Date, default = datetime.utcnow)
+    updated_at   = db.Column(db.Date, default = datetime.utcnow )
     profile_image= db.Column(db.String() )
 
     customer_bookings = db.relationship('Bookings', foreign_keys='Bookings.cust_id', back_populates='customer', lazy=True) 
@@ -63,29 +63,29 @@ class Professional(db.Model):
     cv_file_path   = db.Column(db.String(255) )
     created_at     = db.Column(db.Date,default = datetime.utcnow )
     updated_at     = db.Column(db.Date,default = datetime.utcnow )
-    user = db.relationship("User" , backref="professional" ,  lazy=True)
+    user = db.relationship("User" , backref="professional" , cascade="all, delete" , lazy=True)
 
     # professional_bookings = db.relationship('Bookings', foreign_keys='Bookings.professional_id', backref='professional', lazy=True) 
 
 class Bookings(db.Model):
     __tablename__   = "Bookings"
     id              = db.Column(db.Integer, primary_key=True , autoincrement=True)
-    cust_id         = db.Column(db.String(), db.ForeignKey("User.uuid") ,  nullable=False)
+    cust_id         = db.Column(db.String(), db.ForeignKey("User.uuid") )
     professional_id = db.Column(db.String() , db.ForeignKey("Professional.uuid") ) 
-    service_id      = db.Column(db.Integer, db.ForeignKey("Services.id") ,  nullable=False)
+    service_id      = db.Column(db.Integer, db.ForeignKey("Services.id") )
     status          = db.Column(db.String(), nullable=False ,default = "active")
     booking_date    = db.Column(db.Date, nullable=False ,  default = datetime.utcnow)
     request_date     = db.Column(db.Date)
     completion_date = db.Column(db.Date)
     feedback        = db.Column(db.String())
-    rating          = db.Column(db.Float, default=0)
+    rating          = db.Column(db.Integer, default=0)
 
-    service = db.relationship("Services", backref="bookings", lazy=True)
+    service = db.relationship("Services", backref="bookings", lazy=True )
     customer = db.relationship("User", back_populates="customer_bookings", lazy=True)   #customer
     professional = db.relationship("Professional" , backref="bookings" ,  lazy=True)
 
     # created_at      = db.Column(db.Date, default = datetime.utcnow) 
-    updated_at      = db.Column(db.Date, default = datetime.utcnow)
+    updated_at      = db.Column(db.Date, default = datetime.utcnow )
 
 class Services(db.Model):
     __tablename__   = "Services"
@@ -98,8 +98,8 @@ class Services(db.Model):
     rated_services  = db.Column(db.Integer, default=0 )
     rating_sum      = db.Column(db.Integer, default=0 )
     status          = db.Column(db.Boolean, default =True ) # service_status = active/inactive
-    created_at      = db.Column(db.Date,default = datetime.utcnow , nullable=False)
-    updated_at      = db.Column(db.Date,default = datetime.utcnow , nullable=False)
+    created_at      = db.Column(db.Date,default = datetime.utcnow)
+    updated_at      = db.Column(db.Date,default = datetime.utcnow )
     # category        = db.relationship("ServiceCategory" , backref="services" , lazy=True)
 
 class  ServiceCategory(db.Model):
@@ -107,8 +107,9 @@ class  ServiceCategory(db.Model):
     id              = db.Column(db.Integer, primary_key=True,  autoincrement=True)
     name            = db.Column(db.String(), nullable=False)  # category name
     # service_id      = db.Column(db.Integer ,  db.ForeignKey("Services.id"), nullable=False)
-    services        = db.relationship("Services" ,  backref="category"  ,lazy=True,cascade="all,delete" ) 
+    services        = db.relationship("Services" ,  backref="category"  ,lazy=True, cascade="all,delete" ) 
     created_at      = db.Column(db.Date ,default = datetime.utcnow )
+    # updated_at      = db.Column(db.Date ,default = datetime.utcnow )
 
 # Create all tables
 # Key Concepts:
@@ -487,11 +488,13 @@ def signout():
 def professional_dashboard():
     if(session):
         if(session["role_id"]==2):
-            user=Professional.query.get(session["uuid"])
+            professional=Professional.query.get(session["uuid"])
             active_services = Bookings.query.join(Services).join(ServiceCategory).filter(
-                ServiceCategory.name == user.skill ,Bookings.status=="active").all()
+                ServiceCategory.name == professional.skill ,Bookings.status=="active").all()
             service_history=Bookings.query.join(Services).join(ServiceCategory).filter(
-                Bookings.professional_id ==user.uuid, Bookings.status=="closed" ).all()
+                Bookings.professional_id ==professional.uuid, Bookings.status=="closed" ).all()
+            assigned_services=Bookings.query.filter(
+                Bookings.professional_id ==professional.uuid, Bookings.status=="accepted"  ).all()
 
             # services=Bookings.query.filter_by(Bookings.service.category_id=user.skill)
             # add category_id in professional table
@@ -500,9 +503,9 @@ def professional_dashboard():
             # show only  active categories in dropdown options
             # 1 professional can accept upto 3 request at any point
          
-            if user:
+            if professional:
                 # bookings= [booking for booking in Bookings ]
-                return render_template("/professional/professional_dashboard.html",user=user  ,today_services=active_services , service_history=service_history)
+                return render_template("/professional/professional_dashboard.html",professional=professional  ,today_services=active_services , service_history=service_history, assigned_services=assigned_services)
             else:
                 flash("user not found" , "error")
                 return redirect("/professional/dashboard")
@@ -574,6 +577,7 @@ def book_service(service_id):
     else:
         return 404
 
+
 @app.route('/update_request_date/<int:booking_id>', methods=["POST"])
 def update_request_date(booking_id):
     try:
@@ -606,20 +610,22 @@ def close_booking(booking_id):
         if session["uuid"]==booking.cust_id :
             professional = Professional.query.get(booking.professional_id)
             service=Services.query.get(booking.service_id)
-            print(booking.professional_id)
-            rating = int(request.form.get("rating") or 0)
-            feedback = request.form.get("remarks")
+            # print()
+            rating = int(request.form.get(f"rating{booking.id}") or 0)
+            feedback = request.form.get("remarks") or None
             booking.status = "closed"
             booking.rating=rating
             booking.feedback=feedback
             booking.completion_date=datetime.utcnow()
             booking.updated_at=datetime.utcnow()
-            
-            professional.rating_sum = professional.rating + rating
+            # print("rating of booking",rating)
+        
+            professional.rating_sum = professional.rating_sum + rating
             professional.rated_services = professional.rated_services + 1
 
             service.rating_sum = service.rating_sum + rating
             service.rated_services = service.rated_services + 1
+            # print(service.rating_sum)
 
             db.session.commit()
             flash("Booking Closed Successfully" ,"success")
