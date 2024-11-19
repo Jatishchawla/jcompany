@@ -1,0 +1,139 @@
+{% extends 'base2.html' %}
+{%block head%}
+<style>
+    .dashboard-title {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #343a40;
+    }
+
+    .card {
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #817f7f, #000000);
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        margin-bottom: 20px;
+        transition: transform 0.2s;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+
+    .card .card-title {
+        font-weight: bold;
+        font-size: 20px;
+    }
+
+    .card .card-text {
+        font-size: 24px;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+
+    .chart-container {
+        background: #ffffff;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+    }
+
+    .table {
+        background: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .table th {
+        background-color: #3d3d5b;
+        color: #ffffff;
+    }
+
+    .table td {
+        color: #343a40;
+    }
+
+</style>
+{%endblock%}
+{%block content%}
+
+
+{%include "./admin/admin_dashboard.html"%}
+<div class="main-content">
+    <!-- Dashboard Title -->
+    <h1 class="dashboard-title">Dashboard Overview</h1>
+
+    <!-- Statistics Section -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-center shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <h2 class="card-text">120</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Total Bookings</h5>
+                    <h2 class="card-text">340</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Total Earnings</h5>
+                    <h2 class="card-text">$12,500</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="chart-container">
+        <h5>Revenue Overview</h5>
+        <canvas id="revenueChart" style="max-height: 300px;"></canvas>
+    </div>
+
+    <!-- Activity Table Section -->
+    <div>
+        <h5>Recent User Activity</h5>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">User Name</th>
+                    <th scope="col">Activity</th>
+                    <th scope="col">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">1</th>
+                    <td>John Doe</td>
+                    <td>Booked AC Repair</td>
+                    <td>2024-11-18</td>
+                </tr>
+                <tr>
+                    <th scope="row">2</th>
+                    <td>Jane Smith</td>
+                    <td>Registered Account</td>
+                    <td>2024-11-17</td>
+                </tr>
+                <tr>
+                    <th scope="row">3</th>
+                    <td>Michael Brown</td>
+                    <td>Completed Payment</td>
+                    <td>2024-11-16</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{%endblock%}

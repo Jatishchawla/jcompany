@@ -27,6 +27,8 @@ class User(db.Model):
     phone_number = db.Column(db.Integer, nullable=False)
     created_at   = db.Column(db.Date, default = datetime.utcnow)
     updated_at   = db.Column(db.Date, default = datetime.utcnow )
+    status       = db.Column(db.Boolean , nullable=False , default = True  ) # active/inactive
+
     profile_image= db.Column(db.String() )
 
     customer_bookings = db.relationship('Bookings', foreign_keys='Bookings.cust_id', back_populates='customer', lazy=True) 
@@ -440,6 +442,9 @@ def login():
             return redirect(url_for("register"))
 
         if user:
+            if not user.status:
+                flash("Your account is Terminated" , "danger")
+                return redirect("/")
 
             if (email == user.email and user.check_password(password) ):
                 # session['user'] = user.id      ---YET TO MAKE SESSION---
@@ -672,7 +677,160 @@ def bookings():
 
 @app.route("/admin/dashboard"  , methods=["GET"])
 def admin_dashboard():
-    return render_template("/admin/admin_dashboard.html")
+    
+    if 'role_id' in session and session['role_id'] == 1:
+        return render_template("/admin/dashboard_overview.html") 
+    
+    flash("only admins are allowed" , "error")
+    return redirect("/")
+
+@app.route("/admin/manage-users"  , methods=["GET" ,"POST"])
+def manage_users():
+    
+    customers = User.query.filter(User.role_id == 3).all()
+    professionals=Professional.query.all() 
+
+    sort_by = request.args.get('sort_by', 'name')  # Default sort by name
+    order = request.args.get('order', 'asc')  # Default order is ascending
+
+    if sort_by == 'name':
+        if order == 'asc':
+            customers = User.query.filter(User.role_id == 3).order_by(User.firstname.asc()).all()
+            professionals = Professional.query.join(User).order_by(User.firstname.asc()).all()
+        else:
+            customers = User.query.filter(User.role_id == 3).order_by(User.firstname.desc()).all()
+            professionals = Professional.query.join(User).order_by(User.firstname.desc()).all() 
+    elif sort_by == 'rating':
+        if order == 'asc':
+            professionals = Professional.query.order_by((Professional.rating_sum / Professional.rated_services).asc()).all()
+        else:
+            professionals = Professional.query.order_by((Professional.rating_sum / Professional.rated_services).desc()).all()
+    elif sort_by == 'exp':
+        if order == 'asc':
+            professionals = Professional.query.order_by((Professional.experience).asc()).all()
+        else:
+            professionals = Professional.query.order_by((Professional.experience).desc()).all()
+    elif sort_by == "doj":
+        if order == "asc":
+            customers = User.query.filter(User.role_id == 3).order_by(User.created_at.asc()).all()
+            professionals = Professional.query.join(User).order_by(User.created_at.asc()).all()
+        else:
+            customers = User.query.filter(User.role_id == 3).order_by(User.created_at.desc()).all()
+            professionals = Professional.query.join(User).order_by(User.created_at.desc()).all()
+    else:
+        customers = User.query.filter(User.role_id == 3).all()
+        professionals=Professional.query.all()    
+
+    search_query = request.args.get('search')
+    if search_query:
+        customers = User.query.filter(User.role_id == 3, 
+                                      (User.firstname.ilike(f"%{search_query}%") | 
+                                       User.lastname.ilike(f"%{search_query}%") |
+                                       User.email.ilike(f"%{search_query}%"))).all()
+        professionals = Professional.query.filter(Professional.user.has( 
+            User.firstname.ilike(f"%{search_query}%") |
+            User.lastname.ilike(f"%{search_query}%") |
+            User.email.ilike(f"%{search_query}%"))).all()
+
+    return render_template("/admin/manage_users.html",  customers=customers, professionals=professionals) 
+
+
+@app.route('/edit-user/<string:user_id>', methods=['POST'])
+def edit_user(user_id):
+    user = User.query.get(user_id)
+
+    if user and session.get("signedin"):
+        if session['uuid'] == user.uuid or session["role_id"] == 1:
+            user.firstname = request.form['firstname']
+            user.lastname = request.form['lastname']
+            user.email = request.form['email']
+            user.phone_number = request.form['phone_number']
+            user.address = request.form['address']
+            user.pincode = request.form['pincode']
+
+            db.session.commit()
+
+            if user.role_id == 2:
+                professional = Professional.query.get(user_id)
+                if professional:
+                    professional.experience = int(request.form['experience'])
+                    professional.skill = request.form["skill"]
+                    db.session.commit()
+
+            flash('Profile Updated Successfully!', 'success')
+            return redirect(url_for('manage_users') if session["role_id"] == 1 else "/user_profile")
+        else:
+            flash('You are not authorized to edit this user', 'danger')
+    else:
+        flash('You are not signed in', 'danger')
+
+    return redirect(url_for('manage_users') if session.get("role_id") == 1 else "/user_profile")
+
+    
+
+
+@app.route('/admin/toggle-status/<string:user_id>', methods=["GET" , 'POST'])
+def toggle_status(user_id):
+    if 'role_id' in session and session['role_id'] == 1:
+        user = User.query.filter_by(uuid=user_id).first()
+
+        if user:  # Check if the user exists in the database
+            user.status = not user.status
+            user.updated_at=datetime.utcnow()
+            db.session.commit()
+            print(user)
+
+            if user.role_id == 2:  # Check if it's a professional
+                professional = Professional.query.filter_by(uuid=user_id).first()
+                if professional:  # Check if the professional exists
+                    professional.status = not professional.status
+                    professional.updated_at=datetime.utcnow()
+                    db.session.commit()
+            flash('User status updated successfully!', 'success')
+        else:
+            flash('User not found.', 'danger')
+    else:
+        flash('You do not have permission to perform this action', 'danger')
+        return redirect(url_for('manage_users'))
+        
+    return redirect(url_for('manage_users'))
+
+@app.route('/admin/delete-user/<string:user_id>', methods=["GET",'POST']) 
+def delete_user(user_id):
+    user = User.query.get(user_id)
+    if user:
+        if session.get("signedin"):
+            if session["role_id"] == 1:  # Only admins can delete users
+                if user.role_id == 2:  # Professional
+                    professional = Professional.query.get(user_id)
+                    if professional:
+                        db.session.delete(professional)
+                        db.session.commit() 
+                else:
+                    db.session.delete(user)
+                    db.session.commit()
+                
+                flash('User deleted successfully!', 'success')
+            else:
+                flash('You are not authorized to delete this user.', 'danger')
+        else:
+            flash('you are not signed in.', 'danger')
+    else:
+        flash('User not found.', 'danger')
+    return redirect(url_for('manage_users'))
+
+@app.route("/admin/manage-bookings" , methods=["GET","POST"])
+def manage_bookings():
+    if session.get("signedin"):
+        if session["role_id"] == 1:  # Only admins can manage bookings
+            bookings = Bookings.query.all()
+            return render_template("admin/manage_bookings.html", bookings=bookings)
+        else:
+            flash('You do not have permission to perform this action', 'danger')
+            return redirect("/")
+    else:
+        flash('You are not signed in.', 'danger')
+        return redirect("/")
 
 @app.route("/admin/add_service"  , methods=["GET" , "POST"])
 def add_service():

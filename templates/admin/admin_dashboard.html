@@ -1,20 +1,134 @@
-{%extends "base2.html"%}
-{%block content%}
-
-<div class="container my-5 pt-4">
-    <div class="row text-center">Welcome Admin!</div>
-    <div class="row my-2">
-        <div class="btn btn-outline-primary">
-            <a href="/admin/add_service" >Add a new service</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        #sidebar {
             
-        </div>
-    </div>
-    <div class="row my-2">
-        <div class="btn btn-outline-primary">
-            <a href="/admin/add_category">Add a new category</a>
-        </div>
-    </div>
-    
-</div>
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            /* background: linear-gradient(180deg, #ffffff, #464646);  */
+            background-color: #ffffff ;
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
+            overflow-y: auto; /* Scrollable sidebar for long menus */
+            
+        }
 
-{%endblock%}
+        #sidebar h4 {
+            font-size: 22px;
+            color: #000000 !important; /* Bright text color for visibility */
+            letter-spacing: 1px;
+        }
+
+        #sidebar .nav-link {
+            font-size: 16px;
+            color: #ffffff !important;  /* Subtle light-gray text */
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease-in-out;
+            background: rgba(0, 0, 0, 0.5); /* Subtle transparent background */
+        }
+
+        #sidebar .nav-link:hover {
+            color: #ffffff !important;
+            background: rgba(0,0,0, 0.7); /* Slightly brighter on hover */
+            transform: scale(1.05); /* Zoom effect */
+        }
+
+        #sidebar .nav-link.active {
+            background: rgba(255, 255, 255, 0.2); /* Active link indicator */
+            color: #ffffff; /* Highlight active link */
+            font-weight: bold; /* Bold active link */
+        }
+
+        #sidebar .nav-link i {
+            font-size: 18px;
+            margin-right: 10px; /* Add spacing between icons and text */
+            color: #ffffff;
+        }
+
+        #sidebar .nav-item:last-child {
+            margin-top: 30px;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e9ecef; /* Light gray for the main content */
+        }
+
+        /* -------------------- */
+
+
+        .main-content {
+            min-height: 100vh;
+            margin-left: 250px;
+            padding: 30px;
+            background-color: #f8f9fa;
+        }
+
+
+        /* -------------- */
+
+
+        footer a {
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 14px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<div id="sidebar" class="p-3">
+    <!-- Sidebar -->
+    <div class="text-center">
+        <a href="/admin/dashboard" class="text-decoration-none">
+            <h4 class="text-light text-center fw-bold my-3">ADMIN </h4>
+        </a>
+    </div>
+    <ul class="nav flex-column mt-4">
+        <li class="nav-item mb-3">
+            <a href="/admin/dashboard" class="nav-link d-flex align-items-center">
+                <span class="me-3"><i class="bi bi-speedometer2"></i></span> 
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <li class="nav-item mb-3">
+            <a href="/admin/manage-users" class="nav-link d-flex align-items-center">
+                <span class="me-3"><i class="bi bi-people"></i></span>
+                <span>Manage Users</span>
+            </a>
+        </li>
+        <li class="nav-item mb-3">
+            <a href="/admin/manage-bookings" class="nav-link d-flex align-items-center">
+                <span class="me-3"><i class="bi bi-calendar-check"></i></span>
+                <span>Manage Bookings</span>
+            </a>
+        </li>
+        <li class="nav-item mb-3">
+            <a href="/reports" class="nav-link d-flex align-items-center">
+                <span class="me-3"><i class="bi bi-bar-chart-line"></i></span>
+                <span>Reports</span>
+            </a>
+        </li>
+        <li class="nav-item mt-5">
+            <a href="/logout" class="nav-link d-flex align-items-center text-danger">
+                <span class="me-3"><i class="bi bi-box-arrow-right"></i></span>
+                <span>Logout</span>
+            </a>
+        </li>
+    </ul>
+</div>
+</body>
+</html>

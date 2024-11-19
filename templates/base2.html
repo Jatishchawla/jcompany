@@ -98,7 +98,7 @@
             </form>
             
           </div>
-        </div>
+        <!-- </div> -->
         
 
         <!-- Right-Aligned Elements -->
@@ -121,42 +121,44 @@
             </li>
           </ul>
 
-          {%if not session['signedin']%}
-          <!-- Sign In Button -->
-          <a id="autoClickButton" class="btn btn-outline-primary me-3" data-bs-toggle="modal" data-bs-target="#signInModal" >Sign In</a>
-          {%endif%} 
-          {%if session['signedin']%}
-          <!-- Profile Dropdown -->
-          <div class="dropdown">
-            <img
-              src="https://lh3.googleusercontent.com/lNYd4dMKDTYzZdZi0dJDOvoRwjgzOdo6w5EGB_YKv308rIEEC87NKH6fn0P-JBjZwVjWrCqdErK3LV_-jjunjGEBZ1P8lrbWaRE0vZtH=s192"
-              class="rounded-circle profile-pic"
-              alt="dp"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            />
-            <i class="bi bi-caret-down-fill"></i>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li>
-                <a class="dropdown-item" href="/customer/dashboard">dashboard</a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="/user_profile">View Profile</a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="/user_profile"
-                  >Profile Settings</a
-                >
-              </li>
-              <li>
-                <a class="dropdown-item" href="/customer/dashboard#mybooking">My Bookings</a>
-              </li>
-              <div class="dropdown-divider"></div>
-              <li><a class="dropdown-item" href="/signout">Sign out</a></li>
-            </ul>
-          </div>
-          {%endif%}
         </div>
+        </div>
+        
+        {%if not session['signedin']%}
+        <!-- Sign In Button -->
+        <a id="autoClickButton" class="btn btn-outline-primary me-3" data-bs-toggle="modal" data-bs-target="#signInModal" >Sign In</a>
+        {%endif%} 
+        {%if session['signedin']%}
+        <!-- Profile Dropdown -->
+        <div class="dropdown">
+          <img
+            src="https://lh3.googleusercontent.com/lNYd4dMKDTYzZdZi0dJDOvoRwjgzOdo6w5EGB_YKv308rIEEC87NKH6fn0P-JBjZwVjWrCqdErK3LV_-jjunjGEBZ1P8lrbWaRE0vZtH=s192"
+            class="rounded-circle profile-pic"
+            alt="dp"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          />
+          <i class="bi bi-caret-down-fill"></i>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <a class="dropdown-item" href="/customer/dashboard">dashboard</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="/user_profile">View Profile</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="/user_profile"
+                >Profile Settings</a
+              >
+            </li>
+            <li>
+              <a class="dropdown-item" href="/customer/dashboard#mybooking">My Bookings</a>
+            </li>
+            <div class="dropdown-divider"></div>
+            <li><a class="dropdown-item" href="/signout">Sign out</a></li>
+          </ul>
+        </div>
+        {%endif%}
       </div>
     </nav>
 

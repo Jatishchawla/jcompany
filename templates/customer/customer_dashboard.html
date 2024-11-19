@@ -23,14 +23,26 @@
         } */
         .table-responsive {
             position: relative;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         .table thead th {
             position: sticky;
             top: 0;
-            background-color: #343a40;
+            background-color: #3d3d5b;
+            color: #ffffff;
             z-index: 1;
         }
+        
+
+
+.table td {
+    color: #343a40;
+}
+
         .scrolling-wrapper {
             white-space: nowrap;
             -webkit-overflow-scrolling: touch;
@@ -293,7 +305,7 @@
                 <h3>Booking History</h3>
                 <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                     <table class="table table-bordered table-hover">
-                        <thead class="table-dark">
+                        <thead >
                             <tr>
                                 <th>S No.</th>
                                 <th>Service Name</th>
@@ -309,7 +321,7 @@
                             {% if all_bookings %}
                                 {% for booking in all_bookings %}
                                     <tr class="{% if loop.index % 2 == 0 %}table-white {% else %}table-active{% endif %}" >
-                                        <td>{{ loop.index }}</td>
+                                        <td scope="row">{{ loop.index }}</td>
                                         <td>{{ booking.service.name }}</td>
                                         <td>{{ booking.service.description }}</td>
                                         <td>{{ booking.service.category.name }}</td>
