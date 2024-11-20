@@ -102,6 +102,7 @@ class Services(db.Model):
     status          = db.Column(db.Boolean, default =True ) # service_status = active/inactive
     created_at      = db.Column(db.Date,default = datetime.utcnow)
     updated_at      = db.Column(db.Date,default = datetime.utcnow )
+    category = db.relationship("ServiceCategory", back_populates="services") 
     # category        = db.relationship("ServiceCategory" , backref="services" , lazy=True)
 
 class  ServiceCategory(db.Model):
@@ -109,7 +110,7 @@ class  ServiceCategory(db.Model):
     id              = db.Column(db.Integer, primary_key=True,  autoincrement=True)
     name            = db.Column(db.String(), nullable=False)  # category name
     # service_id      = db.Column(db.Integer ,  db.ForeignKey("Services.id"), nullable=False)
-    services        = db.relationship("Services" ,  backref="category"  ,lazy=True, cascade="all,delete" ) 
+    services        = db.relationship("Services" ,  back_populates="category"  ,lazy=True, cascade="all,delete" ) 
     created_at      = db.Column(db.Date ,default = datetime.utcnow )
     # updated_at      = db.Column(db.Date ,default = datetime.utcnow )
 
@@ -643,23 +644,26 @@ def close_booking(booking_id):
         return  redirect("/customer/dashboard")
 
 
-@app.route('/cancel_booking/<int:booking_id>' ,methods=["POST"])  
+@app.route('/cancel_booking/<int:booking_id>' ,methods=["GET","POST"])  
 def cancel_booking(booking_id):
     feedback = request.form.get("feedback")
     booking = Bookings.query.get(booking_id)
-    if(booking.status != "canceled"):
+    if(booking.status not in ["canceled" , "closed"]):
 
-        if( session['uuid']==booking.cust_id):
+        if( session['uuid']==booking.cust_id or session["role_id"]==1):
             if(feedback):
                 booking.feedback = feedback
             booking.status="canceled"
             booking.updated_at=datetime.utcnow()
             db.session.commit()
             flash("Booking has been canceled" , "success")
+            
         else:
-            flash("User id not matched" , "error")
+            flash("You are Not Authorised to perform action" , "error")
     else:
-        flash("This booking is already canceled" , "warning")
+        flash("This booking is already canceled / Closed" , "warning")
+    if(session["role_id"]==1):
+                return redirect("/admin/manage-bookings")
     return redirect("/customer/dashboard")
 
 
@@ -686,6 +690,9 @@ def admin_dashboard():
 
 @app.route("/admin/manage-users"  , methods=["GET" ,"POST"])
 def manage_users():
+    if ("role_id" not in session or session["role_id"] != 1 ):
+        flash('You do not have permission to perform this action', 'danger')
+        return redirect("/")
     
     customers = User.query.filter(User.role_id == 3).all()
     professionals=Professional.query.all() 
@@ -755,6 +762,7 @@ def edit_user(user_id):
                 if professional:
                     professional.experience = int(request.form['experience'])
                     professional.skill = request.form["skill"]
+                    professional.salary = request.form["salary"]
                     db.session.commit()
 
             flash('Profile Updated Successfully!', 'success')
@@ -769,31 +777,39 @@ def edit_user(user_id):
     
 
 
-@app.route('/admin/toggle-status/<string:user_id>', methods=["GET" , 'POST'])
-def toggle_status(user_id):
+@app.route('/admin/toggle-status/<string:id>', methods=["GET" , 'POST'])
+def toggle_status(id):
     if 'role_id' in session and session['role_id'] == 1:
-        user = User.query.filter_by(uuid=user_id).first()
-
-        if user:  # Check if the user exists in the database
+        service = Services.query.filter_by(id=id).first()
+        if service:
+            
+            service.status = not service.status
+            service.updated_at=datetime.utcnow()
+            db.session.commit()
+            flash('Status toggled successfully', 'success')
+            return redirect("/admin/manage-services")
+        user = User.query.filter_by(uuid=id).first()
+        if user: 
             user.status = not user.status
             user.updated_at=datetime.utcnow()
             db.session.commit()
-            print(user)
 
-            if user.role_id == 2:  # Check if it's a professional
-                professional = Professional.query.filter_by(uuid=user_id).first()
-                if professional:  # Check if the professional exists
+            if user.role_id == 2: # if this user is professional
+                professional = Professional.query.filter_by(uuid=id).first()
+                if professional: 
                     professional.status = not professional.status
                     professional.updated_at=datetime.utcnow()
                     db.session.commit()
             flash('User status updated successfully!', 'success')
         else:
-            flash('User not found.', 'danger')
+            flash('not found.', 'danger')
     else:
         flash('You do not have permission to perform this action', 'danger')
         return redirect(url_for('manage_users'))
         
     return redirect(url_for('manage_users'))
+
+
 
 @app.route('/admin/delete-user/<string:user_id>', methods=["GET",'POST']) 
 def delete_user(user_id):
@@ -801,7 +817,7 @@ def delete_user(user_id):
     if user:
         if session.get("signedin"):
             if session["role_id"] == 1:  # Only admins can delete users
-                if user.role_id == 2:  # Professional
+                if user.role_id == 2:  # delete Professional = delete user
                     professional = Professional.query.get(user_id)
                     if professional:
                         db.session.delete(professional)
@@ -819,34 +835,134 @@ def delete_user(user_id):
         flash('User not found.', 'danger')
     return redirect(url_for('manage_users'))
 
-@app.route("/admin/manage-bookings" , methods=["GET","POST"])
-def manage_bookings():
-    if session.get("signedin"):
-        if session["role_id"] == 1:  # Only admins can manage bookings
-            bookings = Bookings.query.all()
-            return render_template("admin/manage_bookings.html", bookings=bookings)
+@app.route('/admin/manage-bookings', methods=['GET', 'POST'])
+def manage_booking():
+    if ("role_id" not in session or session["role_id"] != 1 ):
+        flash('You do not have permission to perform this action', 'danger')
+        return redirect("/")
+    if request.method == 'POST':         
+        booking_id = request.form.get('id')
+        booking = Bookings.query.filter_by(id=booking_id).first()
+        if booking:
+            booking.status = request.form.get('status', booking.status)
+            request_date_str = request.form.get('request_date', booking.request_date)
+            booking.request_date=datetime.strptime(request_date_str, '%Y-%m-%d').date() 
+            db.session.commit()
+            flash("Booking updated successfully", "success")
         else:
-            flash('You do not have permission to perform this action', 'danger')
-            return redirect("/")
+            flash("Booking not found", "danger")
+        return redirect(url_for('manage_booking'))
+
+    # Handle displaying and filtering bookings
+    search_query = request.args.get('search', '').strip()
+    if search_query:
+        bookings = Bookings.query.join(User).join(Services).filter(
+            (User.firstname.ilike(f"%{search_query}%")) |
+            (User.lastname.ilike(f"%{search_query}%")) |
+            (User.address.ilike(f"%{search_query}%")) |
+            (Services.name.ilike(f"%{search_query}%")) |
+            (Bookings.status.ilike(f"%{search_query}%"))
+        ).all()
     else:
-        flash('You are not signed in.', 'danger')
+        bookings = Bookings.query.all()
+    return render_template('admin/manage_bookings.html', bookings=bookings, search_query=search_query)
+
+@app.route('/admin/manage-services', methods=['GET', 'POST'])
+def manage_services():
+    if ("role_id" not in session or session["role_id"] != 1 ):
+        flash('You do not have permission to perform this action', 'danger')
         return redirect("/")
 
-@app.route("/admin/add_service"  , methods=["GET" , "POST"])
+    if request.method == 'POST':
+        # Handle adding or updating a service
+        service_id = request.form.get('id')
+        if service_id:
+            # Update existing service
+            service = Services.query.filter_by(id=service_id).first()
+            if service:
+                service.name = request.form.get('name', service.name)
+                service.category_id = request.form.get('category_id', service.category_id)
+                service.price = request.form.get('price', service.price)
+                db.session.commit()
+                flash("Service updated successfully", "success")
+            else:
+                flash("Service not found", "danger")
+       
+        return redirect(url_for('manage_services'))
+
+    # Fetch and display all services
+    services = Services.query.order_by(Services.category_id).all()
+    categories = ServiceCategory.query.all()
+
+    filter_by = request.args.get('filter', '').strip()
+    search_query = request.args.get('query', '').strip()
+    if search_query or filter_by:
+        # Start with the base query
+        query = Services.query
+
+        # Apply filter based on the user's choice
+        if filter_by == "name":
+            query = query.filter(Services.name.ilike(f"%{search_query}%"))
+        elif filter_by == "category":
+            query = query.join(ServiceCategory).filter(ServiceCategory.name.ilike(f"%{search_query}%"))
+        elif filter_by == "price":
+            if search_query.isdigit():
+                query = query.filter(Services.price == int(search_query))
+        elif filter_by == "id":
+            if search_query.isdigit():
+                query = query.filter(Services.id == int(search_query))
+        elif filter_by == "duration":
+            if search_query.isdigit():
+                query = query.filter(Services.duration == int(search_query))
+        elif filter_by == "status":
+            query = query.filter(Services.status.ilike(f"%{search_query}%"))
+        else:
+            flash("Invalid filter selected.", "danger")
+            return redirect(url_for('manage_services'))
+
+        # Execute the query
+        services = query.all()
+        
+
+
+    return render_template('admin/manage_services.html', services=services, categories=categories)
+
+@app.route('/admin/delete-service/<string:user_id>', methods=["GET",'POST']) 
+def delete_service(user_id):
+    service = Services.query.get(user_id)
+    if service:
+        if session.get("signedin"):
+            if session["role_id"] == 1:     
+                db.session.delete(service)
+                db.session.commit()
+                
+                flash('Service deleted successfully!', 'success')
+            else:
+                flash('You are not authorized to delete this service.', 'danger')
+        else:
+            flash('you are not signed in.', 'danger')
+    else:
+        flash('Service not found.', 'danger')
+    return redirect(url_for('manage_services'))
+
+@app.route("/admin/add-service"  , methods=["GET" , "POST"])
 def add_service():
+    if ("role_id" not in session or session["role_id"] != 1 ):
+        flash('You do not have permission to perform this action', 'danger')
+        return redirect("/")
     if(request.method =="POST"):
         service_name=request.form.get("name")
         category_id=request.form.get("category_id")
         price=request.form.get("price")
         description=request.form.get("description")
         duration=request.form.get("duration")
-        service=Services(name=service_name , category_id = category_id , price=price , description =description ,
+        new_service=Services(name=service_name , category_id = category_id , price=price , description =description ,
                          duration=duration)
-        db.session.add(service)
+        db.session.add(new_service)
         db.session.commit()
         flash("Service Added Successfully" , "success")
-        return(redirect("/admin/dashboard"))
-    return render_template("/admin/add_service.html")
+        return(redirect("/admin/manage-services"))
+    return render_template("/admin/manage_services.html")
 
 
 

@@ -116,7 +116,8 @@ footer .bi {
   position: fixed;
   bottom: 20px;  /* Adjust as needed */
   right: 20px;   /* Adjust as needed */
-  width: 250px;  /* Set desired width */
+  min-width: 250px;  /* Set desired width */
+  max-width:400px;
   z-index: 1100; /* Ensure it stays above other content */
 }
 .alert-success {

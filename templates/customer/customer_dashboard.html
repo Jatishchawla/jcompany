@@ -123,6 +123,7 @@
             <!-- upcoming bookings  -->
             <div class="row">
                 <h3>Upcoming Bookings</h3>
+                {% if upcoming_bookings %}
                 {% for booking in upcoming_bookings %}
                 <div class="col-md-6">
                     <div class="booking-item mb-3 p-3 bg-light rounded shadow-sm">
@@ -297,6 +298,9 @@
                     </div>
                 </div>
                 {% endfor %}
+                {%else%}
+                <em>No Upcoming Bookings</em>
+                {%endif%}
             </div>
             
             <hr>
@@ -340,7 +344,7 @@
                                         <div class="modal fade" id="bookingDetailsModal{{booking.id}}" tabindex="-1" aria-labelledby="bookingDetailsModalLabel{{booking.id}}" aria-hidden="true" >
                                             <div class="modal-dialog modal-dialog-centered">
                                                 <div class="modal-content">
-                                                    <div class="modal-header">
+                                                    <div class="modal-header rounded">
                                                         <h5 class="modal-title" id="bookingDetailsModal{{booking.id}}">Booking Details</h5>
                                                         <button type="button" class="btn-close bg-white" data-bs-dismiss="modal" aria-label></button>
                                                     </div>
@@ -352,13 +356,13 @@
                                                         <p><strong>Duration:</strong> {{booking.service.duration}} hours</p>
                                                         <p><strong>status:</strong> {{booking.status}}</p>
                                                         <hr>
-                                                        {% if booking.professional %}
+                                                        {% if booking.professional and booking.professional.user %}
                                                         <p><strong>Assigned professional:</strong>
                                                             {{ booking.professional.user.firstname }} {{ booking.professional.user.lastname }}
                                                         </p>
                                                         <p><strong>Professional's id</strong> {{ booking.professional.user.uuid }}</p>
                                                         {% else %}
-                                                            <p> Professional was not assigned </p>
+                                                            <p> Professional Details Not Avialable </p>
                                                         {% endif %}
                                                         <hr>
                                                         <p><strong>booking Address:</strong> {{booking.customer.address}} , {{booking.customer.pincode}}</p>
@@ -428,7 +432,7 @@
                                 <p><strong>Duration:</strong> {{ service.duration }}</p>
                                 <p><strong>Service Rating:</strong> 
                                     {% if service.rated_services!=0 %}
-                                    {{ service.rating_sum/service.rated_services }}
+                                    {{ (service.rating_sum/service.rated_services)|round(2) }}
                                     {% else %}
                                     0.0
                                     {% endif %}

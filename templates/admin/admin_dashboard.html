@@ -2,6 +2,12 @@
 <html lang="en">
 <head>
     <style>
+        .dashboard-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: black;
+        }
         #sidebar {
             
             width: 250px;
@@ -28,7 +34,7 @@
             padding: 10px 15px;
             border-radius: 5px;
             transition: all 0.3s ease-in-out;
-            background: rgba(0, 0, 0, 0.5); /* Subtle transparent background */
+            background: rgba(0, 0, 0); /* Subtle transparent background */
         }
 
         #sidebar .nav-link:hover {
@@ -84,6 +90,8 @@
             margin: 0;
             font-size: 14px;
         }
+
+        
     </style>
 
 </head>
@@ -117,13 +125,19 @@
             </a>
         </li>
         <li class="nav-item mb-3">
+            <a href="/admin/manage-services" class="nav-link d-flex align-items-center">
+                <span class="me-3"><i class="bi bi-tools"></i></span>
+                <span>Manage Services</span>
+            </a>
+        </li>
+        <li class="nav-item mb-3">
             <a href="/reports" class="nav-link d-flex align-items-center">
                 <span class="me-3"><i class="bi bi-bar-chart-line"></i></span>
                 <span>Reports</span>
             </a>
         </li>
         <li class="nav-item mt-5">
-            <a href="/logout" class="nav-link d-flex align-items-center text-danger">
+            <a href="/signout" class="nav-link d-flex align-items-center text-danger">
                 <span class="me-3"><i class="bi bi-box-arrow-right"></i></span>
                 <span>Logout</span>
             </a>

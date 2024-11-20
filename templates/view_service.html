@@ -43,7 +43,7 @@
                             <td>Rs {{ service.price }}</td>
                             <td>{{ service.duration }}</td>
                             <td>{%if service.rating_sum != 0 and service.rated_services!=0 %}
-                                {{ service.rating_sum/service.rated_services }}
+                                {{ (service.rating_sum/service.rated_services)|round(2) }}
                                {%else%}
                                0
                                {%endif%}
