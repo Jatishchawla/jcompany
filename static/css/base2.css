@@ -243,6 +243,11 @@ body {
     text-decoration: underline; /* Underline link on hover */
 }
 
+.required-star {
+  color: red;
+  font-size: 14px;
+}
+
 /* custom scrollbar */
 ::-webkit-scrollbar {
   width: 20px;

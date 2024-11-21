@@ -1,0 +1,15 @@
+{% extends "base2.html" %}
+
+{%block content%} 
+  {%include "homepage.html"%} 
+{%endblock%} 
+
+{%block script%}
+<script>
+    // Show the sign-in modal when the page loads
+    window.onload = function() {
+        var signUpModal = new bootstrap.Modal(document.getElementById('signUpModal_serviceprofessional'));
+        signUpModal.show();
+    };
+</script>
+{%endblock%}

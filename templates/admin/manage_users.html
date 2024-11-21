@@ -361,6 +361,7 @@
                     <th scope="col">Rating</th>
                     <th scope="col">Status</th>
                     <th scope="col">Actions</th>
+                    <th scope="col">CV</th>
                 </tr>
             </thead>
             <tbody>
@@ -394,6 +395,15 @@
                                 Activate
                             {% endif %}
                         </a>
+                    
+                        
+                    </td>
+                    <td>
+                    {% if professional.cv_path %}
+                        <a href="{{ url_for('static', filename=professional.cv_path) }}" target="_blank" class="btn btn-primary" >View CV</a>
+                    {% else %}
+                        <em>No Cv Avialable</em>
+                    {% endif %}
                     </td>
                 </tr>
 

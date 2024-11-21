@@ -5,6 +5,8 @@ from datetime import datetime
 import pandas as pd
 import uuid
 import bcrypt
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -29,12 +31,11 @@ class User(db.Model):
     updated_at   = db.Column(db.Date, default = datetime.utcnow )
     status       = db.Column(db.Boolean , nullable=False , default = True  ) # active/inactive
 
-    profile_image= db.Column(db.String() )
 
     customer_bookings = db.relationship('Bookings', foreign_keys='Bookings.cust_id', back_populates='customer', lazy=True) 
     # professional = db.relationship('Professional', uselist=False, back_populates='user')
     
-    def __init__(self, uuid , email, password, firstname, lastname, address, pincode, role_id, phone_number,profile_image):
+    def __init__(self, uuid , email, password, firstname, lastname, address, pincode, role_id, phone_number):
         self.uuid = uuid
         self.email = email
         self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
@@ -44,8 +45,7 @@ class User(db.Model):
         self.address=address 
         self.phone_number=phone_number
         self.role_id = role_id
-        if(profile_image):
-            self.profile_image=profile_image 
+       
 
     def check_password(self , password):
         return bcrypt.checkpw(password.encode('utf-8'), self.password)
@@ -61,8 +61,8 @@ class Professional(db.Model):
     skill          = db.Column(db.String(),  nullable=False) 
     rating_sum     = db.Column(db.Integer, default=0)
     rated_services = db.Column(db.Integer, default=0) 
-    status         = db.Column(db.Boolean , nullable=False , default = True  ) # active/inactive
-    cv_file_path   = db.Column(db.String(255) )
+    status         = db.Column(db.Boolean , nullable=False , default = False  ) # active/inactive
+    cv_path        = db.Column(db.String(255) )
     created_at     = db.Column(db.Date,default = datetime.utcnow )
     updated_at     = db.Column(db.Date,default = datetime.utcnow )
     user = db.relationship("User" , backref="professional" , cascade="all, delete" , lazy=True)
@@ -108,8 +108,7 @@ class Services(db.Model):
 class  ServiceCategory(db.Model):
     __tablename__   = "ServiceCategory"
     id              = db.Column(db.Integer, primary_key=True,  autoincrement=True)
-    name            = db.Column(db.String(), nullable=False)  # category name
-    # service_id      = db.Column(db.Integer ,  db.ForeignKey("Services.id"), nullable=False)
+    name            = db.Column(db.String(), nullable=False)  
     services        = db.relationship("Services" ,  back_populates="category"  ,lazy=True, cascade="all,delete" ) 
     created_at      = db.Column(db.Date ,default = datetime.utcnow )
     # updated_at      = db.Column(db.Date ,default = datetime.utcnow )
@@ -324,12 +323,22 @@ def fill_tables():
     
     return "done"
 
+# Configuration for file uploads
+UPLOAD_FOLDER = 'uploads/cv_files'  # Directory to save uploaded CVs
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 #-------------------------------
 
 @app.route("/" , methods= ["GET"])
 def home():
-    return render_template("homepage.html")
+    categories=ServiceCategory.query.all()
+    return render_template("homepage.html",categories=categories)
 
 # for customer
 @app.route("/register" , methods =["GET",  "POST"])
@@ -355,11 +364,10 @@ def register():
         address      =request.form.get("address")
         pincode      =request.form.get("pincode")
         phone_number =request.form.get("phonenumber")
-        profile_image =request.form.get("profile_image")
         
         new_registration = User(uuid = str(id) ,email=email , password = password , firstname=firstname, lastname=lastname,
                                 address=address , pincode=pincode, phone_number=phone_number
-                                ,role_id = 3 , profile_image=profile_image  )
+                                ,role_id = 3   )
 
         db.session.add(new_registration)
         db.session.commit()
@@ -394,42 +402,58 @@ def professional_register():
         
         # db wala code
         id = uuid.uuid4()
-
-        firstname = request.form.get("firstname")
+        firstname    = request.form.get("firstname")
         lastname     =request.form.get("lastname")
         role_id      = 2
         address      =request.form.get("address")
         pincode      =request.form.get("pincode")
         phone_number =request.form.get("phonenumber")
-        profile_image =request.form.get("profile_image")
-        experience = request.form.get("experience")
-        skill=request.form.get("skill")
+        
+        experience   = request.form.get("experience")
+        skill        =request.form.get("skill")
 
+        cv_file = request.files.get("cv")
+        if not cv_file:
+            flash("No file selected. Please upload your CV.", "danger")
+            return redirect(url_for("professional_register"))
+
+        if cv_file and allowed_file(cv_file.filename):
+            filename = secure_filename(cv_file.filename+'id')
+            cv_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            cv_file.save(cv_path)
+        else:
+            flash("Invalid CV file. Please upload a PDF, DOC, or DOCX file.", "danger")
+            return redirect("/professional/register")
+
+        
         new_user_registration = User(uuid=str(id), email=email , password = password , firstname=firstname, lastname=lastname,
                                 address=address , pincode=pincode, phone_number=phone_number,
-                                role_id = 2 , profile_image=profile_image  )
+                                role_id = 2  )
         
 
-        new_professional_registration= Professional(uuid=str(id), skill=skill , experience=experience,)
+        new_professional_registration= Professional(uuid=str(id), skill=skill , experience=experience,cv_path=cv_path)
         
         db.session.add(new_professional_registration)
         db.session.add(new_user_registration)
         db.session.commit()
+        user = User.query.filter_by(email=email).first()
+        user.status=False
+        db.session.commit()
 
         flash( "REGISTERED SUCCESSFULLY !" , "success" )
         return redirect(url_for("login")) # REDIRECT TO  LOGIN PAGE !
-    
-    return render_template("/professional/professional_registeration_form.html")  # make a seperate register page for Professional
+    categories=ServiceCategory.query.all()
+    return render_template("/professional/professional_registeration_form.html" , categories=categories)  # make a seperate register page for Professional
 
 
 
-# common for both cust and prof
+# common for Admin , Cust and Prof
 @app.route("/login" , methods =["GET" , "POST"])
 def login():
     
     if "firstname" in session:
         flash("Please Sign Out First","info")
-        return redirect(url_for("customer_dashboard"))
+        return redirect("/")
      
     if (request.method == "POST"):
         email = request.form.get("email")
@@ -444,7 +468,7 @@ def login():
 
         if user:
             if not user.status:
-                flash("Your account is Terminated" , "danger")
+                flash("Your account is Not Verfied or Terminated " , "danger")
                 return redirect("/")
 
             if (email == user.email and user.check_password(password) ):
@@ -472,8 +496,8 @@ def login():
             flash("User NOT FOUND , Please Register First", "error")
             return redirect("/")
         
-    # return redirect("/")
-    return render_template("login.html")
+    categories=ServiceCategory.query.all()
+    return render_template("login.html",categories=categories)
 
 @app.route("/signout")
 def signout():
@@ -533,6 +557,7 @@ def accept_booking(booking_id , professional_id):
 
     booking.status = "accepted"
     booking.professional_id=professional_id
+    booking.updated_at=datetime.utcnow()
     db.session.commit()
 
     flash("Booking accepted successfully!", "success")
@@ -540,13 +565,13 @@ def accept_booking(booking_id , professional_id):
 
 @app.route("/customer/dashboard", methods=["GET"])
 def customer_dashboard():
-    if "firstname" in session:
+    if "firstname" in session and session["role_id"]==3:
         # Retrieve the current user from the database using their UUID stored in the session
         user = User.query.filter_by(email=session["email"]).first()
 
         if user:
             categories=ServiceCategory.query.all() 
-            services = Services.query.limit(8).all()
+            services = Services.query.filter(Services.status == True ).limit(8).all()
             all_bookings = [booking for booking in user.customer_bookings ]
             upcoming_bookings = [booking for booking in user.customer_bookings if (not booking.completion_date and booking.status != "canceled")]
 
@@ -554,22 +579,65 @@ def customer_dashboard():
         else:
             flash("User not found", "error")
             return redirect('/')
-    else:
-        flash("You are not signed in", "error")
+    elif "role_id" in session and session["role_id"] != 3:
+        flash("You are not a customer", "error")
         return redirect('/')
+    flash("You are not signed in", "error")
+    return redirect('/')
     
 
 @app.route("/viewservice" ,methods=["GET","POST"])
 def view_service():
-    # view all services
-    # Fetch the specific service details from the database
-    services = Services.query.all()
+    services = Services.query.filter(Services.status == True ).order_by(Services.category_id).all()
+    # categories = ServiceCategory.query.all()
+    search_global = request.args.get('query_global', '').strip()
+
+    if search_global:
+        services=Services.query.join(ServiceCategory).filter( 
+            (Services.name.ilike(f"%{search_global}%")) |
+            (ServiceCategory.name.ilike(f"%{search_global}%")) &
+            Services.status == True
+        ).order_by(ServiceCategory.id.asc()).all() 
+ 
+    filter_by = request.args.get('filter', '').strip()
+    search_query = request.args.get('query', '').strip()
+    if search_query or filter_by:
+        # Start with the base query
+        query = Services.query.filter(Services.status == True )
+
+        # Apply filter based on the user's choice
+        if filter_by == "name":
+            query = query.filter(Services.name.ilike(f"%{search_query}%")).order_by(Services.name.asc())
+        elif filter_by == "category":
+            query = query.join(ServiceCategory).filter(ServiceCategory.name.ilike(f"%{search_query}%")).order_by(ServiceCategory.id.asc())
+        elif filter_by == "price":
+            query = query.order_by(Services.price.asc())
+            if search_query.isdigit():
+                query = query.filter(Services.price == int(search_query))
+            else:
+                query = query.filter(Services.name.ilike(f"%{search_query}%")).order_by(Services.price.asc())
+        elif filter_by == "rating":
+            query = query.order_by((Services.rating_sum / Services.rated_services).desc())
+            if search_query.isdigit():
+                query = query.filter((Services.rating_sum / Services.rated_services)>=int(search_query)).order_by((Services.rating_sum / Services.rated_services).desc())
+            else:
+                query = query.filter(Services.name.ilike(f"%{search_query}%")).order_by((Services.rating_sum / Services.rated_services).desc())
+        elif filter_by == "duration":
+            query = query.order_by(Services.duration.asc())
+            if search_query.isdigit():
+                query = query.filter(Services.duration == int(search_query))
+        else:
+            flash("Invalid filter selected.", "danger")
+            return redirect("/viewservice")
+
+        # Execute the query
+        services = query.all()
     return render_template('view_service.html', services=services)
 
 
 @app.route('/book_service/<int:service_id>'  , methods=["POST"])
 def book_service(service_id):
-    if[session['role_id']==3]:
+    if ("role_id" in session and [session['role_id']==3]):
         request_date_str = request.form.get("request_date")
         
         if request_date_str:
@@ -581,7 +649,8 @@ def book_service(service_id):
         flash("Booking Successful" , "success")
         return redirect("/customer/dashboard")
     else:
-        return 404
+        flash("You are not authorized to book this service" , "danger")
+        return redirect("/")
 
 
 @app.route('/update_request_date/<int:booking_id>', methods=["POST"])
@@ -675,15 +744,17 @@ def user_profile():
 
     return render_template("/profile.html" , user=user)    
 
-@app.route("/user/dashboard/bookings" , methods=["GET"])
-def bookings():
-    return "heres is your history of booking and active services"
 
 @app.route("/admin/dashboard"  , methods=["GET"])
 def admin_dashboard():
     
     if 'role_id' in session and session['role_id'] == 1:
-        return render_template("/admin/dashboard_overview.html") 
+        total_customers = User.query.filter_by(role_id=3).count()
+        total_professionals = User.query.filter_by(role_id=2).count()
+        total_bookings = Bookings.query.count()
+        total_services=Services.query.filter(Services.status==True).count()
+        total_revenue = db.session.query(db.func.sum(Services.price)).join(Bookings, Services.id == Bookings.service_id).filter(Bookings.status == "closed").scalar() or 0
+        return render_template("/admin/dashboard_overview.html" , total_customers=total_customers, total_professionals=total_professionals ,total_bookings=total_bookings , total_services=total_services,total_revenue=total_revenue ) 
     
     flash("only admins are allowed" , "error")
     return redirect("/")
@@ -867,6 +938,56 @@ def manage_booking():
         bookings = Bookings.query.all()
     return render_template('admin/manage_bookings.html', bookings=bookings, search_query=search_query)
 
+@app.route('/admin/manage-category', methods=['GET', 'POST'])
+def manage_category():
+    if ("role_id" not in session or session["role_id"] != 1 ):
+        flash('You do not have permission to perform this action', 'danger')
+        return redirect("/")
+
+    if request.method == 'POST':
+        # Handle updating a service
+        name = request.form.get('name')
+        category = ServiceCategory(name=name)
+        db.session.add(category)
+        db.session.commit()
+        flash("Category created successfully", "success")
+        return redirect(url_for('manage_category'))
+    
+    categories = ServiceCategory.query.all()
+    print(categories) 
+
+    return render_template('admin/manage_categories.html' , categories=categories)
+
+@app.route('/admin/delete-category/<string:id>', methods=["GET",'POST']) 
+def delete_category(id):
+    category = ServiceCategory.query.get(id)
+    if category:
+        if session.get("signedin"):
+            if session["role_id"] == 1:   
+                # # Check if any services in the category have bookings
+                # has_bookings = db.session.query(
+                #     exists().where(
+                #         Bookings.service_id == Services.id,
+                #     ).where(
+                #         Services.category_id == id,
+                #     )).scalar()
+                for service in category.services:
+                    if service.bookings:
+                        flash("Cannot delete category; it has associated services with active bookings.", "error")
+                        return redirect(url_for("manage_category"))
+                
+                db.session.delete(category)
+                db.session.commit()
+                
+                flash('category deleted successfully!', 'success')
+            else:
+                flash('You are not authorized to delete this category.', 'danger')
+        else:
+            flash('you are not signed in.', 'danger')
+    else:
+        flash('category not found.', 'danger')
+    return redirect(url_for('manage_category'))
+
 @app.route('/admin/manage-services', methods=['GET', 'POST'])
 def manage_services():
     if ("role_id" not in session or session["role_id"] != 1 ):
@@ -874,7 +995,7 @@ def manage_services():
         return redirect("/")
 
     if request.method == 'POST':
-        # Handle adding or updating a service
+        # Handle updating a service
         service_id = request.form.get('id')
         if service_id:
             # Update existing service
@@ -927,12 +1048,18 @@ def manage_services():
 
     return render_template('admin/manage_services.html', services=services, categories=categories)
 
-@app.route('/admin/delete-service/<string:user_id>', methods=["GET",'POST']) 
-def delete_service(user_id):
-    service = Services.query.get(user_id)
+@app.route('/admin/delete-service/<string:id>', methods=["GET",'POST']) 
+def delete_service(id):
+    service = Services.query.get(id)
     if service:
         if session.get("signedin"):
-            if session["role_id"] == 1:     
+            if session["role_id"] == 1:
+
+                # Check for dependent bookings
+                bookings = Bookings.query.filter_by(service_id=id).all()
+                if bookings:
+                    flash("Cannot delete service; it has associated bookings.", "danger")
+                    return redirect(url_for('manage_services'))
                 db.session.delete(service)
                 db.session.commit()
                 

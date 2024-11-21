@@ -38,7 +38,7 @@
             alt="Logo"
             class="me-2 navbar-logo"
           />
-          <span>J Company</span>
+          <!-- <span>J COMPAnY</span> -->
         </a>
 
         <!-- Navbar Toggle for Mobile View -->
@@ -79,21 +79,23 @@
             </div>
 
             <!-- Search Bar -->
-            <form id="search-form" action="/search" method="GET" class="d-inline-block position-relative">
+            <form id="search-form" action="/viewservice" method="GET" class="d-inline-block position-relative">
               <input
                 type="text"
                 class="search-bar"
+                name="query_global"
                 id="search-input"
                 placeholder="Search..."
+                value="{{ request.args.get( 'query_global') or search}}"
                 required
               />
               <div class="dropdown-menu position-absolute" style="width: 100%; z-index: 1000;">
                 <div class="dropdown-header">Trending Searches</div>
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="#">AC Repair</a>
-                <a class="dropdown-item" href="#">Plumbing</a>
-                <a class="dropdown-item" href="#">Electrical</a>
-                <a class="dropdown-item" href="#">Cleaning Services</a>
+                <a class="dropdown-item" href="/viewservice?query_global=Ac Repair">AC Repair</a>
+                <a class="dropdown-item" href="/viewservice?query_global=plumbing">Plumbing</a>
+                <a class="dropdown-item" href="/viewservice?query_global=electrical">Electrical</a>
+                <a class="dropdown-item" href="/viewservice?query_global=cleaning">Cleaning Services</a>
               </div>
             </form>
             
@@ -127,7 +129,9 @@
         {%if not session['signedin']%}
         <!-- Sign In Button -->
         <a id="autoClickButton" class="btn btn-outline-primary me-3" data-bs-toggle="modal" data-bs-target="#signInModal" >Sign In</a>
+        <a id="autoClickButton" class="btn btn-outline-primary me-3" data-bs-toggle="modal" data-bs-target="#signUpModal" >Sign Up</a>
         {%endif%} 
+
         {%if session['signedin']%}
         <!-- Profile Dropdown -->
         <div class="dropdown">
@@ -141,18 +145,29 @@
           <i class="bi bi-caret-down-fill"></i>
           <ul class="dropdown-menu dropdown-menu-end">
             <li>
-              <a class="dropdown-item" href="/customer/dashboard">dashboard</a>
+              <a class="dropdown-item" 
+              {% if session["role_id"] ==3 %}
+              href="/customer/dashboard">Dashboard
+              {% elif session["role_id"] ==2 %}
+              href="/professional/dashboard">Dashboard
+              {% elif session["role_id"] ==1 %}
+              href="/admin/dashboard">Dashboard
+              {%endif%}
+              </a>
             </li>
             <li>
               <a class="dropdown-item" href="/user_profile">View Profile</a>
             </li>
+            
             <li>
-              <a class="dropdown-item" href="/user_profile"
-                >Profile Settings</a
-              >
-            </li>
-            <li>
-              <a class="dropdown-item" href="/customer/dashboard#mybooking">My Bookings</a>
+              <a class="dropdown-item" 
+              {% if session["role_id"] ==3 %}
+              href="/customer/dashboard#mybookings">My Bookings
+              {% elif session["role_id"] ==2 %}
+              href="/professional/dashboard#mybookings">My Bookings
+              {%endif%}
+              </a>
+              
             </li>
             <div class="dropdown-divider"></div>
             <li><a class="dropdown-item" href="/signout">Sign out</a></li>
@@ -174,11 +189,13 @@
             <form action="/login" method="POST">
               <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" name="email">
+                <span class="required-star">*</span>
+                <input type="email" class="form-control" id="email" name="email" required>
               </div>
               <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" name="password">
+                <span class="required-star">*</span>
+                <input type="password" class="form-control" id="password" name="password" required>
               </div>
               <button type="submit" class="btn btn-primary w-100">Sign In</button>
             </form>
@@ -209,36 +226,40 @@
               <form action="/register" method="POST" >
                   <div class="mb-3">
                       <label for="firstName" class="form-label">First Name</label>
+                      <span class="required-star">*</span>
                       <input type="text" class="form-control" id="firstName" name="firstname" required>
                   </div>
                   <div class="mb-3">
                       <label for="lastName" class="form-label">Last Name</label>
+                      <span class="required-star">*</span>
                       <input type="text" class="form-control" id="lastName" name="lastname" required>
                   </div>
                   <div class="mb-3" >
                       <label for="email" class="form-label">Email</label>
+                      <span class="required-star">*</span>
                       <input type="email" class="form-control" id="email" name="email" required>
                   </div>
                   <div class="mb-3">
                       <label for="password" class="form-label">Password</label>
+                      <span class="required-star">*</span>
                       <input type="password" class="form-control" id="password" name="password" required>
                   </div>
                   <div class="mb-3">
                       <label for="address" class="form-label">Address</label>
+                      <span class="required-star">*</span>
                       <textarea class="form-control" id="address" rows="3" name="address" required></textarea>
                   </div>
                   <div class="mb-3">
                       <label for="pincode" class="form-label">Pincode</label>
+                      <span class="required-star">*</span>
                       <input type="text" class="form-control" id="pincode" name="pincode" required>
                   </div>
                   <div class="mb-3">
                     <label for="phoneNumber" class="form-label">Phone Number</label>
+                    <span class="required-star">*</span>
                     <input type="tel" class="form-control" name="phonenumber" id="phoneNumber" required>
                   </div>
-                  <div class="mb-3">
-                      <label for="profile_image" class="form-label">Profile Image</label>
-                      <input type="file" class="form-control" name="profile_image" id="profile_image" >
-                  </div>
+                
                   <button type="submit" class="btn btn-primary w-100">Register</button>
               </form>
           </div>
@@ -260,52 +281,72 @@
               </a>
           <!-- </p> -->
           <div class="modal-body">
-              <form action="/professional/register" method="POST">
+              <form action="/professional/register" method="POST" enctype="multipart/form-data">
                 <!-- fist name -->
                   <div class="mb-3">
                       <label for="firstName" class="form-label">First Name</label>
+                      <span class="required-star">*</span>
                       <input type="text" class="form-control" id="firstName" name="firstname" required>
                   </div>
                   <!-- last name -->
                   <div class="mb-3">
                       <label for="lastName" class="form-label">Last Name</label>
+                      <span class="required-star">*</span>
                       <input type="text" class="form-control" id="lastName" name="lastname" required>
                   </div>
                   <!-- email -->
                   <div class= "mb-3" >
                       <label for="email" class="form-label">Email</label>
+                      <span class="required-star">*</span>
                       <input type="email" class="form-control" id="email" name="email" required>
                   </div>
                   <!-- password -->
                   <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
+                    <span class="required-star">*</span>
                     <input type="password" class="form-control" id="password" name="password" required>
                   </div>
                   <!-- address -->
                   <div class="mb-3">
                     <label for="address" class="form-label">Address</label>
+                    <span class="required-star">*</span>
                     <textarea class="form-control" id="address" rows="3" name="address" required></textarea>
                   </div>
                   <!-- pincode -->
                   <div class="mb-3">
                     <label for="pincode" class="form-label">Pincode</label>
+                    <span class="required-star">*</span>
                     <input type="text" class="form-control" id="pincode" name="pincode" required>
                   </div>
                   <!-- phone number -->
                   <div class="mb-3">
                     <label for="phonenumber" class="form-label">Phone Number</label>
+                    <span class="required-star">*</span>
                     <input type="tel" class="form-control" name="phonenumber" id="phonenumber" required>
                   </div>
                   <!-- expirience -->
                   <div class= "mb-3" >
                       <label for="experience" class="form-label">Experience</label>
+                      <span class="required-star">*</span>
                       <input type="number" class="form-control" id="experience" name="experience" placeholder="in years" required>
                   </div>
                   <!-- skill -->
-                  <div class= "mb-3" >
-                      <label for="skill" class="form-label">Skill</label>
-                      <input type="text" class="form-control" id="skill" name="skill" required>
+                  <div class="mb-3">
+                      <label for="category" class="form-label">Skill / Service Type</label>
+                      <span class="required-star">*</span>
+                      <select class="form-select" id="skill" name="skill" required>
+                          <option value="" disabled selected>Select a category</option>
+                          {% for category in categories %}
+                          <option value="{{ category.name }}">{{ category.name }}</option>
+                          {% endfor %}
+                      </select>
                   </div>
+                  <div class="mb-3">
+                    <label for="cv" class="form-label">Resumes</label>
+                    <span class="required-star">*</span>
+                    <input type="file" class="form-control" name="cv" id="cv" accept=".pdf,.doc,.docx" required>
+                  </div>
+                  
                   <button type="submit" class="btn btn-primary w-100">Register</button>
               </form>
           </div>
@@ -313,9 +354,9 @@
   </div>
 </div>
 
-
+<div style="min-height: 80vh;"  >
     {% block content %} {% endblock %}
-
+</div>
 
 
     <!-- alert start -->
@@ -335,7 +376,7 @@
 
 
       <!-- footer -->
-    <footer class="bg-dark text-light pt-4">
+    <footer  class=" bg-dark text-light pt-4">
       <div class="container">
         <div class="row">
           <!-- About Section -->

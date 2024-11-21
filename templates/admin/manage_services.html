@@ -189,7 +189,7 @@
             </select>
         </div>
         <div class="col-md-6">
-            <input type="text" name="query" class="form-control" placeholder="Enter search text" value="{{ request.args.get('query') }}">
+            <input type="text" name="query" class="form-control" placeholder="Enter search text" value="{{ request.args.get('query') or s }} ">
         </div>
         <div class="col-md-3">
             <button type="submit" class="btn btn-primary w-100">Search</button>
