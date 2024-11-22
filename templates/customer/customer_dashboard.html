@@ -1,4 +1,4 @@
-{% extends "base2.html" %}
+{% extends "base.html" %}
 {%block head%}
     <link
       href="{{url_for('static',filename='css/customer_dasboard.css')}}"
@@ -6,21 +6,7 @@
     />
     
     <style>
-        /* p{
-            color: white;
-        }
-        h3{
-            color: white;
-        }
-        h2{
-            color: white;
-        }
-        .bg-light{
-            background-color: #232527 !important;
-        }
-        .bg-white{
-            background-color: #141415 !important;
-        } */
+
         .table-responsive {
             position: relative;
             background: #ffffff;
@@ -32,7 +18,7 @@
         .table thead th {
             position: sticky;
             top: 0;
-            background-color: #3d3d5b;
+            background-color: rgba(0,0,0,0.7);
             color: #ffffff;
             z-index: 1;
         }
@@ -40,7 +26,7 @@
 
 
 .table td {
-    color: #343a40;
+    color: black;
 }
 
         .scrolling-wrapper {
@@ -143,6 +129,9 @@
                         <p><strong>professional Phone No.:</strong> {{booking.professional.user.phone_number}}</p>
                         {% else %}
                         <p>professional not assigned yet</p>
+                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#chooseProfessionalModal{{ booking.id }}">
+                            Choose Professional
+                        </button>
                         {% endif %} 
 
                         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#bookingDetailsModal{{ booking.id }}">
@@ -156,6 +145,65 @@
                         <a class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirm_cancel{{booking.id}}">Cancel</a >
                     </div>
                 </div>
+                <!-- Modal to Choose Professional -->
+                <div class="modal fade" id="chooseProfessionalModal{{ booking.id }}" tabindex="-1" aria-labelledby="chooseProfessionalModalLabel{{ booking.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                        <h5 class="modal-title" id="chooseProfessionalModalLabel{{ booking.id }}">Choose a Professional</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                        <!-- Table of Professionals -->
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th scope="col">Name</th>
+                                <th scope="col">Rating</th>
+                                <th scope="col">Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% set flag = False %}
+                            {% for professional in professionals %}
+                                {% if professional.skill == booking.service.category.name %}
+                                {% set flag = True %}
+                                <tr>
+                                    <td>{{ professional.user.firstname }} {{ professional.user.lastname }}</td>
+                                    
+                                    <td>
+                                        {%if professional.rating_sum != 0 and professional.rated_services!=0 %}
+                                        {{ (professional.rating_sum / professional.rated_services)|round(2) }} / 5
+                                        {%else%}
+                                        None
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                    <!-- Button to choose professional -->
+                                    <a href="/assign_professional/{{booking.id}}/{{professional.uuid}}">
+                                        <button class="btn btn-primary">Choose</button>
+                                    </a>
+                                    </td>
+                                </tr>
+                                
+                                {% endif %}
+                            {% endfor %}
+                            {% if flag != True %}
+                                <tr>
+                                    <td colspan="3" class="text-center">No other professionals are available for this service category at the moment.</td>
+                                </tr>
+                            {% endif %}
+                    
+                            </tbody>
+                        </table>
+                        </div>
+                        <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+  
                 <!-- close_booking -->
                 <div class="modal fade " id="close_booking{{booking.id}}" tabindex="-1" aria-labelledby="closeBookingModalLabel{{booking.id}}" aria-hidden="true" >
                     <div class="modal-dialog modal-dialog-centered">

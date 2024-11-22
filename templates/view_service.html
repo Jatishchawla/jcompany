@@ -1,4 +1,4 @@
-{%extends "base2.html"%}
+{%extends "base.html"%}
 {%block head%}
     <style>
     /* .table-hover tbody tr:hover {
@@ -26,6 +26,8 @@
                     <option value="price" {% if request.args.get('filter') == 'price' %}selected{% endif %}>Price</option>
                     <option value="duration" {% if request.args.get('filter') == 'duration' %}selected{% endif %}>Duration</option>
                     <option value="rating" {% if request.args.get('filter') == 'rating' %}selected{% endif %}>Rating</option>
+                    <option value="location" {% if request.args.get('filter') == 'location' %}selected{% endif %}>Location</option>
+                    <option value="pincode" {% if request.args.get('filter') == 'pincode' %}selected{% endif %}>Pincode</option>
                 </select>
             </div>
             <div class="col-md-6">
@@ -51,6 +53,7 @@
                     <th>Category</th>
                     <th>Price</th>
                     <th>Duration (hrs)</th>
+                    <th>pincode</th>
                     <th>Rating</th>
                     <th>Actions</th>
                 </tr>
@@ -65,6 +68,7 @@
                             <td>{{ service.category.name }}</td>
                             <td>Rs {{ service.price }}</td>
                             <td>{{ service.duration }}</td>
+                            <td>{{ service.pincode }}</td>
                             <td>{%if service.rating_sum != 0 and service.rated_services!=0 %}
                                 {{ (service.rating_sum/service.rated_services)|round(2) }}
                                {%else%}

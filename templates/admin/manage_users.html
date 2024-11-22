@@ -1,4 +1,4 @@
-{% extends 'base2.html' %}
+{% extends 'base.html' %}
 
 
 {% block content %}
@@ -451,7 +451,18 @@
                                     </div>
                                     <div class="form-group">
                                         <label>Service Type / Skill</label>
-                                        <input class="form-control" name="skill" value="{{ professional.skill }}"></input>
+                                        <input class="form-control" name="s" value="{{ professional.skill }}" readonly></input>
+                                    </div>
+                                    <!-- skill -->
+                                    <div class="mb-3">
+                                        <label for="category" class="form-label"> Change Service Type / skill</label>
+                                        
+                                        <select class="form-select" id="skill" name="skill" required>
+                                            <option value="" disabled selected>Select a category</option>
+                                            {% for category in categories %}
+                                            <option value="{{ category.name }}">{{ category.name }}</option>
+                                            {% endfor %}
+                                        </select>
                                     </div>
                                     <div class="form-group">
                                         <label>Experience (years)</label>

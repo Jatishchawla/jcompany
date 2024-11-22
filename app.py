@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect ,flash, url_for
+from flask import Flask, render_template, request, redirect ,flash, url_for , jsonify
 from flask import session
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -6,6 +6,7 @@ import pandas as pd
 import uuid
 import bcrypt
 import os
+from sqlalchemy.inspection import inspect
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -29,7 +30,7 @@ class User(db.Model):
     phone_number = db.Column(db.Integer, nullable=False)
     created_at   = db.Column(db.Date, default = datetime.utcnow)
     updated_at   = db.Column(db.Date, default = datetime.utcnow )
-    status       = db.Column(db.Boolean , nullable=False , default = True  ) # active/inactive
+    status       = db.Column(db.Boolean  , default = True  ) # active/inactive
 
 
     customer_bookings = db.relationship('Bookings', foreign_keys='Bookings.cust_id', back_populates='customer', lazy=True) 
@@ -63,6 +64,7 @@ class Professional(db.Model):
     rated_services = db.Column(db.Integer, default=0) 
     status         = db.Column(db.Boolean , nullable=False , default = False  ) # active/inactive
     cv_path        = db.Column(db.String(255) )
+    active_booking_count= db.Column(db.Integer, default=0)
     created_at     = db.Column(db.Date,default = datetime.utcnow )
     updated_at     = db.Column(db.Date,default = datetime.utcnow )
     user = db.relationship("User" , backref="professional" , cascade="all, delete" , lazy=True)
@@ -77,7 +79,7 @@ class Bookings(db.Model):
     service_id      = db.Column(db.Integer, db.ForeignKey("Services.id") )
     status          = db.Column(db.String(), nullable=False ,default = "active")
     booking_date    = db.Column(db.Date, nullable=False ,  default = datetime.utcnow)
-    request_date     = db.Column(db.Date)
+    request_date    = db.Column(db.Date)
     completion_date = db.Column(db.Date)
     feedback        = db.Column(db.String())
     rating          = db.Column(db.Integer, default=0)
@@ -100,6 +102,10 @@ class Services(db.Model):
     rated_services  = db.Column(db.Integer, default=0 )
     rating_sum      = db.Column(db.Integer, default=0 )
     status          = db.Column(db.Boolean, default =True ) # service_status = active/inactive
+    location        = db.Column(db.String())
+    pincode         = db.Column(db.Integer)
+
+
     created_at      = db.Column(db.Date,default = datetime.utcnow)
     updated_at      = db.Column(db.Date,default = datetime.utcnow )
     category = db.relationship("ServiceCategory", back_populates="services") 
@@ -376,7 +382,7 @@ def register():
         return redirect(url_for("login")) # REDIRECT TO LOGIN PAGE !
        
 
-    return render_template("/customer/customer_registration_form.html")
+    return render_template("/customer/customer_registeration_form.html")
     
 
 
@@ -546,6 +552,29 @@ def professional_dashboard():
         flash("You are not signed in" , "error")
         return redirect("/")
 
+@app.route('/reject_booking/<int:booking_id>/<string:professional_id>', methods=["GET" , "POST"])
+def reject_booking(booking_id , professional_id):
+
+    booking = Bookings.query.get_or_404(booking_id)
+
+    if booking.status == "active" and booking.professional_id != professional_id:
+        flash(f"This booking does not belongs to you", "info")
+        return redirect(url_for('professional_dashboard'))
+    if ("role_id" not in session or session["role_id"] != 2 ):
+        flash('You do not have permission to perform this action', 'danger')
+        return redirect("/")
+    
+    professional=Professional.query.filter(Professional.uuid == professional_id).first()
+
+    booking.status = "active"
+    booking.professional_id=None
+    booking.updated_at=datetime.utcnow()
+    professional.active_booking_count= professional.active_booking_count - 1
+    db.session.commit()
+
+    flash("Booking rejected successfully!", "success")
+    return redirect("/professional/dashboard")
+
 @app.route('/accept_booking/<int:booking_id>/<string:professional_id>', methods=['POST'])
 def accept_booking(booking_id , professional_id):
 
@@ -554,14 +583,24 @@ def accept_booking(booking_id , professional_id):
     if booking.status == "accepted":
         flash(f"This booking has already been accepted by {booking.professional.name} ", "info")
         return redirect(url_for('professional_dashboard'))
+    if ("role_id" not in session or session["role_id"] != 2 ):
+        flash('You do not have permission to perform this action', 'danger')
+        return redirect("/")
+    
+    professional=Professional.query.filter(Professional.uuid == professional_id).first()
+    if professional.active_booking_count<3:
 
-    booking.status = "accepted"
-    booking.professional_id=professional_id
-    booking.updated_at=datetime.utcnow()
-    db.session.commit()
+        booking.status = "accepted"
+        booking.professional_id=professional_id
+        booking.updated_at=datetime.utcnow()
+        professional.active_booking_count= professional.active_booking_count + 1
+        db.session.commit()
 
-    flash("Booking accepted successfully!", "success")
-    return redirect("/professional/dashboard")
+        flash("Booking accepted successfully!", "success")
+        return redirect("/professional/dashboard")
+    else:
+        flash("You have already accepted 3 bookings today" , "error")
+        return redirect("/professional/dashboard")
 
 @app.route("/customer/dashboard", methods=["GET"])
 def customer_dashboard():
@@ -574,8 +613,33 @@ def customer_dashboard():
             services = Services.query.filter(Services.status == True ).limit(8).all()
             all_bookings = [booking for booking in user.customer_bookings ]
             upcoming_bookings = [booking for booking in user.customer_bookings if (not booking.completion_date and booking.status != "canceled")]
+                    
+            # CREATE VIEW active_professionals AS
+            # SELECT p.uuid AS professional_id
+            # FROM professionals p
+            # LEFT JOIN bookings b ON p.uuid = b.professional_id
+            # WHERE b.status NOT IN ('cancelled', 'closed')
+            # GROUP BY p.uuid
+            # HAVING COUNT(b.id) < 3;
 
-            return render_template("/customer/customer_dashboard.html", services=services ,all_bookings=all_bookings, upcoming_bookings=upcoming_bookings ,categories=categories)
+            # professionals = db.session.query(Professional).join(
+            #         Bookings, isouter=True  # Right join on Booking and Professional
+            #     ).filter(
+            #         Bookings.status.notin_(['canceled', 'closed']),  # Exclude canceled and closed bookings
+            #         Bookings.professional_id == Professional.uuid  # Join condition between Professional and Booking
+            #     ).group_by(
+            #         Professional.uuid  # Group by Professional ID
+            #     ).having(
+            #         db.func.count(Bookings.id).filter(Bookings.status == 'accepted' ) < 3  # Professionals with less than 3 active bookings
+            #     ).all() 
+
+            professionals=Professional.query.filter( (Professional.active_booking_count<3) & (Professional.status == True )).all()
+
+            print( )
+            print(len(professionals))
+            for professional in professionals:
+                print(professional.user.firstname)
+            return render_template("/customer/customer_dashboard.html", services=services ,all_bookings=all_bookings, upcoming_bookings=upcoming_bookings ,categories=categories ,professionals=professionals)
         else:
             flash("User not found", "error")
             return redirect('/')
@@ -616,6 +680,14 @@ def view_service():
                 query = query.filter(Services.price == int(search_query))
             else:
                 query = query.filter(Services.name.ilike(f"%{search_query}%")).order_by(Services.price.asc())
+        elif filter_by == "location":
+            query = query.filter(Services.location.ilike(f"%{search_query}%")).order_by(Services.location.asc())
+        elif filter_by == "pincode":
+            query = query.order_by(Services.pincode.asc())
+            if search_query.isdigit():
+                query = query.filter(Services.pincode == int(search_query))
+            else:
+                query = query.filter(Services.name.ilike(f"%{search_query}%")).order_by(Services.pincode.asc())
         elif filter_by == "rating":
             query = query.order_by((Services.rating_sum / Services.rated_services).desc())
             if search_query.isdigit():
@@ -651,7 +723,27 @@ def book_service(service_id):
     else:
         flash("You are not authorized to book this service" , "danger")
         return redirect("/")
+    
+@app.route('/assign_professional/<int:booking_id>/<string:professional_uuid>', methods=['GET'])
+def assign_professional(booking_id, professional_uuid):
+    # Retrieve the professional by uuid from the database
+    booking = Bookings.query.filter_by(id=booking_id).first()
+    if ("role_id" not in session and session["role_id"]!=booking.cust_id ):
+        flash("You are not authorized to assign a professional" , "danger")
+        return redirect("/")
+      # Retrieve the booking and professional by their respective IDs
+    professional = Professional.query.filter_by(uuid=professional_uuid).first()
 
+    if booking and professional and professional.active_booking_count <3:
+        booking.professional_id = professional.uuid
+        booking.status="accepted"
+        booking.updated_at=datetime.utcnow()
+        professional.active_booking_count = professional.active_booking_count + 1
+        db.session.commit()
+
+        return redirect("/customer/dashboard")  
+    else:
+        return "Booking or Professional not found", 404
 
 @app.route('/update_request_date/<int:booking_id>', methods=["POST"])
 def update_request_date(booking_id):
@@ -688,6 +780,7 @@ def close_booking(booking_id):
             # print()
             rating = int(request.form.get(f"rating{booking.id}") or 0)
             feedback = request.form.get("remarks") or None
+            print(rating,feedback)
             booking.status = "closed"
             booking.rating=rating
             booking.feedback=feedback
@@ -697,6 +790,7 @@ def close_booking(booking_id):
         
             professional.rating_sum = professional.rating_sum + rating
             professional.rated_services = professional.rated_services + 1
+            professional.active_booking_count = professional.active_booking_count - 1
 
             service.rating_sum = service.rating_sum + rating
             service.rated_services = service.rated_services + 1
@@ -724,6 +818,9 @@ def cancel_booking(booking_id):
                 booking.feedback = feedback
             booking.status="canceled"
             booking.updated_at=datetime.utcnow()
+            if booking.professional_id:
+                professional = Professional.query.get(booking.professional_id)
+                professional.active_booking_count = professional.active_booking_count - 1
             db.session.commit()
             flash("Booking has been canceled" , "success")
             
@@ -739,10 +836,12 @@ def cancel_booking(booking_id):
 @app.route("/user_profile", methods=["GET","POST"])
 def user_profile():
     user = User.query.get(session['uuid'])
-    # if request.method == "POST":
+    if user.role_id == 2:
+        professional=Professional.query.get(user.uuid)
+        return render_template("/profile.html" , user=user , professional=professional)    
 
 
-    return render_template("/profile.html" , user=user)    
+    return render_template("/profile.html" , user=user )    
 
 
 @app.route("/admin/dashboard"  , methods=["GET"])
@@ -809,8 +908,8 @@ def manage_users():
             User.firstname.ilike(f"%{search_query}%") |
             User.lastname.ilike(f"%{search_query}%") |
             User.email.ilike(f"%{search_query}%"))).all()
-
-    return render_template("/admin/manage_users.html",  customers=customers, professionals=professionals) 
+    categories = ServiceCategory.query.all()
+    return render_template("/admin/manage_users.html",  customers=customers, professionals=professionals , categories=categories) 
 
 
 @app.route('/edit-user/<string:user_id>', methods=['POST'])
@@ -915,6 +1014,13 @@ def manage_booking():
         booking_id = request.form.get('id')
         booking = Bookings.query.filter_by(id=booking_id).first()
         if booking:
+            if request.form.get('status') in ["canceled" , "closed"]:
+                professional=Professional.query.get(booking.professional_id)
+                if professional:
+                    professional.active_booking_count = professional.active_booking_count - 1
+                    db.session.commit()
+                
+
             booking.status = request.form.get('status', booking.status)
             request_date_str = request.form.get('request_date', booking.request_date)
             booking.request_date=datetime.strptime(request_date_str, '%Y-%m-%d').date() 
@@ -954,7 +1060,7 @@ def manage_category():
         return redirect(url_for('manage_category'))
     
     categories = ServiceCategory.query.all()
-    print(categories) 
+    
 
     return render_template('admin/manage_categories.html' , categories=categories)
 
@@ -1004,6 +1110,8 @@ def manage_services():
                 service.name = request.form.get('name', service.name)
                 service.category_id = request.form.get('category_id', service.category_id)
                 service.price = request.form.get('price', service.price)
+                service.location = request.form.get('location', service.location)
+                service.pincode = request.form.get('pincode', service.pincode)
                 db.session.commit()
                 flash("Service updated successfully", "success")
             else:
@@ -1024,6 +1132,14 @@ def manage_services():
         # Apply filter based on the user's choice
         if filter_by == "name":
             query = query.filter(Services.name.ilike(f"%{search_query}%"))
+        elif filter_by == "location":
+            query = query.filter(Services.location.ilike(f"%{search_query}%")).order_by(Services.location.asc())
+        elif filter_by == "pincode":
+            query = query.order_by(Services.pincode.asc())
+            if search_query.isdigit():
+                query = query.filter(Services.pincode == int(search_query))
+            else:
+                query = query.filter(Services.name.ilike(f"%{search_query}%")).order_by(Services.pincode.asc())
         elif filter_by == "category":
             query = query.join(ServiceCategory).filter(ServiceCategory.name.ilike(f"%{search_query}%"))
         elif filter_by == "price":
@@ -1083,14 +1199,36 @@ def add_service():
         price=request.form.get("price")
         description=request.form.get("description")
         duration=request.form.get("duration")
+        pincode=request.form.get("pincode")
+        location=request.form.get("location")
         new_service=Services(name=service_name , category_id = category_id , price=price , description =description ,
-                         duration=duration)
+                         duration=duration, pincode=pincode, location=location)
         db.session.add(new_service)
         db.session.commit()
         flash("Service Added Successfully" , "success")
         return(redirect("/admin/manage-services"))
     return render_template("/admin/manage_services.html")
 
+@app.route('/admin/api/schema', methods=['GET'])
+def get_database_schema():
+    if ("role_id" not in session or session["role_id"] != 1 ):
+        flash('You do not have permission to perform this action', 'danger')
+        return redirect("/")
+    schema = {}
+    inspector = inspect(db.engine)  # Use inspect to get metadata
+    for table_name in inspector.get_table_names():
+        table_info = []
+        columns = inspector.get_columns(table_name)
+        for column in columns:
+            table_info.append({
+                'name': column['name'],
+                'type': str(column['type']),
+                'nullable': column['nullable'],
+                'primary_key': column['primary_key'],
+                'default': str(column['default']) if column['default'] else None
+            })
+        schema[table_name] = table_info
+    return jsonify(schema)
 
 
 if __name__ == "__main__":
