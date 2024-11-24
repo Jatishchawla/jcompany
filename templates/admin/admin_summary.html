@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{%block head%}
+<style>
+    .dashboard-title {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #343a40;
+    }
+
+    
+
+</style>
+{%endblock%}
+{%block content%}
+
+{%include "./admin/admin_dashboard.html"%}
+<div class="main-content">
+    <h1 class="dashboard-title">Dashboard Overview</h1>
+    <img style="height: 500px;" src="{{ url_for('static', filename='images/bookings_summary.jpeg') }}" alt="Bookings Summary Chart">
+</div>
+{%endblock%}

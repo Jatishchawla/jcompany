@@ -390,6 +390,9 @@
                                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bookingDetailsModal{{ booking.id }}">
                                             View Booking Details
                                         </button>
+                                        {% if booking.professional_id %}
+                                        <a href="/complaint/{{booking.professional_id}}" onclick=" return confirm('are you sure to report this professional?')" class="btn btn-danger btn-sm">Report Professional</a>
+                                        {%endif%}
                                         </td>
                                     </tr>
                                      <!--booking details model-->

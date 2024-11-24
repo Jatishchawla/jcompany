@@ -111,16 +111,20 @@
               <a class="nav-link underline-effect" href="/">Home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link underline-effect" href="#services">Services</a>
+              <a class="nav-link underline-effect" href="/viewservice">Services</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link underline-effect" href="#support">Support</a>
+              <a class="nav-link underline-effect" href="/#footer">Support</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link underline-effect" href="#subscription"
-                >Subscription</a
-              >
+              <a class="nav-link underline-effect " href="/aboutus">About</a>
             </li>
+            
+            {%if session['signedin']%}
+            <li class="nav-item">
+              <a class="nav-link underline-effect" href="/summary">Summary</a>
+            </li>
+            {%endif%}
           </ul>
 
         </div>
@@ -376,7 +380,7 @@
 
 
       <!-- footer -->
-    <footer  class=" bg-dark text-light pt-4">
+    <footer id="footer" class=" bg-dark text-light pt-4">
       <div class="container">
         <div class="row">
           <!-- About Section -->

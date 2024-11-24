@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{%block content%} 
+<div class="container mt-5 bg-white rounded shadow-sm" >
+    <div class="row mt-4">
+        <div class="col">
+            <h3>Service Requests Overview</h3>
+            <img class="img-fluid rounded shadow" 
+                src="{{ url_for('static', filename='images/customer_booking_' ~ customer_id ~ '.jpeg') }}" 
+
+                alt="Customer Booking Chart">
+        </div>
+    </div>
+</div>
+
+{%endblock%} 

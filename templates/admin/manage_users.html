@@ -400,7 +400,7 @@
                     </td>
                     <td>
                     {% if professional.cv_path %}
-                        <a href="{{ url_for('static', filename=professional.cv_path) }}" target="_blank" class="btn btn-primary" >View CV</a>
+                        <a href="{{ url_for('static', filename=professional.cv_path[7:]) }}" target="_blank" class="btn btn-primary" >View CV</a>
                     {% else %}
                         <em>No Cv Avialable</em>
                     {% endif %}

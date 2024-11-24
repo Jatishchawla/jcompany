@@ -190,6 +190,7 @@
                             <th>Category</th>
                             <th>Price</th>
                             <th>Duration</th>
+                            <th>Status</th>
                             <th>Rating</th>
                             <th>Actions</th>
                         </tr>
@@ -208,13 +209,16 @@
                                     <td>{{ booking.service.category.name }}</td>
                                     <td>Rs {{ (booking.service.price/100)*80  }}</td>
                                     <td>{{ booking.service.duration }} hrs</td>
+                                    <td>{{ booking.status }}</td>
                                     <td>{{ booking.rating }} / 5</td>
                                     
                                     <td>
                                         <!-- <a href="#" class="btn btn-primary btn-sm">View Details</a> -->
-                                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#bookingModal{{ booking.id }}">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#bookingModal{{ booking.id }}">
                                             view details
                                         </button>
+                                        <a href="/complaint/{{booking.cust_id}}" onclick=" return confirm('are you sure to report this professional?')" class="btn btn-outline-danger btn-sm">Report Customer</a>
+
                                     </td>
                                 </tr>
                             <!-- Booking Modal with unique ID for each service -->
@@ -230,12 +234,18 @@
                                             <h6>Service Information</h6>
                                             
                                             <p><strong>Booking ID:</strong> {{ booking.id }}</p>
+                                            <p><strong>Booking Status:</strong> {{ booking.status }}</p>
                                             <p><strong>Service Name:</strong> {{ booking.service.name }}</p>
                                             <p><strong>Category:</strong> {{ booking.service.category_id }}</p>
                                             <p><strong>Service Details</strong> {{booking.service.description}}</p>
                                             <p><strong>Duration:</strong> {{ booking.service.duration }}</p>
                                             <p><strong>Price:</strong> Rs {{ (booking.service.price/100)*80  }}</p>                
                                             <p><strong>Service Rating</strong> {{booking.rating}} </p>
+                                            <hr>
+                                            
+                                            <p><strong>feedback</strong> {{booking.feedback}} </p>
+
+
                                             <hr>
                                             <!-- professional Details -->
                                             <h6>Customer Information</h6>

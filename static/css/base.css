@@ -248,6 +248,56 @@ body {
   font-size: 14px;
 }
 
+
+/* Custom styles for the dropdown button */
+.btn-custom {
+      background-color: rgba(0,0,0, 0.5); /* Primary Blue */
+      color: white;
+      border-radius: 25px; /* Rounded edges */
+      font-size: 14px;
+      padding: 8px 16px;
+      transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+  }
+  
+  .btn-custom:hover {
+      color: white;
+      background-color: rgba(0,0,0, 0.7); /* Darker Blue on hover */
+      transform: scale(1.05); /* Slight scale effect */
+  }
+  
+  .dropdown-menu {
+      background-color: #f8f9fa; /* Light background for the dropdown */
+      border-radius: 10px;
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1); /* Soft shadow for dropdown */
+  }
+  
+  .dropdown-item {
+      font-size: 14px;
+      padding: 8px 20px;
+      transition: background-color 0.3s ease; /* Smooth hover effect */
+  }
+  
+  .dropdown-item:hover {
+      background-color: #0d0d0e;
+      color: white; /* Change color when hovering */
+  }
+  .dropdown-item i {
+      margin-left: 10px;
+      color: #007bff; /* Optional: Match the icon color to the theme */
+  }
+  
+  .text-uppercase {
+      font-weight: bold;
+  }
+
+
+  .table-responsive {
+    
+    border-radius: 8px;
+    
+}
+
+
 /* custom scrollbar */
 ::-webkit-scrollbar {
   width: 20px;

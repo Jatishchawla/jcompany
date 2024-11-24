@@ -1,0 +1,153 @@
+{%extends "base.html"%}
+
+{%block head%}
+<style>
+    .table-responsive {
+            position: relative;
+        }
+
+        .table thead th {
+            position: sticky;
+            top: 0;
+            background-color: #26282a;
+            z-index: 1;
+        }
+        .scrolling-wrapper {
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+</style>
+{%endblock%} 
+
+{%block content%}    
+
+<div class="container mt-5 bg-white rounded shadow-sm">
+        {% if service_history %}
+        <h2 class="text-center my-4">Charts</h2>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            <div class="col">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h5 class="card-title m-0">Service Count Chart</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <img class="img-fluid rounded" 
+                             src="{{ url_for('static', filename='images/professional_' ~ prof_id ~ '_service_count.jpeg') }}" 
+                             alt="Service Count Chart">
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-success text-white text-center">
+                        <h5 class="card-title m-0">Average Rating Chart</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <img class="img-fluid rounded" 
+                             src="{{ url_for('static', filename='images/professional_' ~ prof_id ~ '_avg_rating.jpeg') }}" 
+                             alt="Average Rating Chart">
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-info text-white text-center">
+                        <h5 class="card-title m-0">Service Average Rating Chart</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <img class="img-fluid rounded" 
+                             src="{{ url_for('static', filename='images/professional_' ~ prof_id ~ '_service_avg_rating.jpeg') }}" 
+                             alt="Service Average Rating Chart">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    {% else %}
+        <p>No service history found for this professional.</p>
+    {% endif %}
+    <br>
+    
+    <!-- service hstory table -->
+    <div id="mybookings" class="container mt-5 mb-4">
+        <h2 class="mb-4">Service History</h2>
+            {% if service_history %}
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>S No.</th>
+                            <th>Booking ID</th>
+                            <th>Service Name</th>
+                            <th>Completion Date</th>
+                            <th>Customer Name</th>
+                            <th>Rating</th>
+                            <th>feedback</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        {% for booking in service_history %}
+                            
+                            <tr class="{% if loop.index % 2 == 0 %}table-light {% else %}table-active{% endif %}">
+                                    <td>{{loop.index}}</td>
+                                    <td>{{booking.id}}</td>
+                                    <td>{{ booking.service.name }}</td>
+                                    <td>{{booking.completion_date}}</td>
+                                    <td>{{booking.customer.firstname}} {{booking.customer.lastname}}</td>
+                                    <td>{{ booking.rating }} / 5</td>
+                                    <td>{{ booking.feedback }}</td>
+                                    
+                                    <td>
+                                        <!-- <a href="#" class="btn btn-primary btn-sm">View Details</a> -->
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#bookingModal{{ booking.id }}">
+                                            view details
+                                        </button>
+                                    </td>
+                                </tr>
+                            <!-- Booking Modal with unique ID for each service -->
+                            <div class="modal fade" id="bookingModal{{ booking.id }}" tabindex="-1" aria-labelledby="bookingModalLabel{{ booking.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="bookingModalLabel{{ booking.id }}">Booking Request Details</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <!-- Service Details -->
+                                            <h6>Service Information</h6>
+                                            
+                                            <p><strong>Booking ID:</strong> {{ booking.id }}</p>
+                                            <p><strong>Service Name:</strong> {{ booking.service.name }}</p>             
+                                            <p><strong>Completion Date</strong> {{booking.completion_date}}</p>
+                                            <hr>
+                                            <p><strong>Service Rating</strong> {{booking.rating}} </p>
+                                            <p><strong>Service feeback :</strong> {{booking.feedback}} </p>
+
+                                            <hr>
+                                            <!-- customer Details -->
+                                            <h6>Customer Information</h6>
+                                            <p><strong>Customer Name:</strong> {{ booking.customer.firstname }} {{booking.customer.lastname}}</p>
+                                            <!-- <p><strong>Customer Phone Number:</strong> {{ booking.customer.phone_number }}</p>
+                                            <p><strong>Customer Address:</strong> {{ booking.customer.address }}</p> -->
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">close</button>
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>No History available at the moment.</p>
+        {% endif %}
+        
+    </div>
+
+</div>
+{%endblock%}

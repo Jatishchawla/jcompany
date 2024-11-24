@@ -6,12 +6,16 @@ import pandas as pd
 import uuid
 import bcrypt
 import os
+from sqlalchemy import func
+from matplotlib import rcParams
 from sqlalchemy.inspection import inspect
+import matplotlib.pyplot as plt
 from werkzeug.utils import secure_filename
-
+import matplotlib
+matplotlib.use('Agg')
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sampledb5.sqlite3"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sampledb6.sqlite3"
 app.config['SECRET_KEY']="key"
 db = SQLAlchemy(app)
 
@@ -28,6 +32,7 @@ class User(db.Model):
     pincode      = db.Column(db.Integer, nullable=False)
     role_id      = db.Column(db.Integer, nullable=False)  # 1 - admin , 2 - Professional , 3- customer
     phone_number = db.Column(db.Integer, nullable=False)
+    complaints_count = db.Column(db.Integer, default=0)
     created_at   = db.Column(db.Date, default = datetime.utcnow)
     updated_at   = db.Column(db.Date, default = datetime.utcnow )
     status       = db.Column(db.Boolean  , default = True  ) # active/inactive
@@ -119,16 +124,16 @@ class  ServiceCategory(db.Model):
     created_at      = db.Column(db.Date ,default = datetime.utcnow )
     # updated_at      = db.Column(db.Date ,default = datetime.utcnow )
 
-# Create all tables
-# Key Concepts:
-# Application Context: Flask needs to know which application is the "current" app when executing certain operations, such as database interactions or configuration retrieval. The application context ensures that the code is aware of which app's settings to use.
+    # Create all tables
+    # Key Concepts:
+    # Application Context: Flask needs to know which application is the "current" app when executing certain operations, such as database interactions or configuration retrieval. The application context ensures that the code is aware of which app's settings to use.
 
-# Why It's Needed: If you’re using functionality that relies on the application (like db.create_all(), url_for(), current_app, etc.), Flask requires that you tell it which app you’re working with. Otherwise, it will raise the "Working outside of application context" error.
+    # Why It's Needed: If you’re using functionality that relies on the application (like db.create_all(), url_for(), current_app, etc.), Flask requires that you tell it which app you’re working with. Otherwise, it will raise the "Working outside of application context" error.
 
-# Inside with app.app_context():
-# Pushes the Application Context: It sets up the app’s context, making the app’s configuration and resources available for the duration of the block.
-# Access to current_app and g: You can access current_app, which points to the app in the context, and g, a special object for storing data during a request.
-# Handles Database Operations: Since the database depends on the app configuration (SQLAlchemy settings, for example), using app.app_context() ensures that the database functions properly inside the context.
+    # Inside with app.app_context():
+    # Pushes the Application Context: It sets up the app’s context, making the app’s configuration and resources available for the duration of the block.
+    # Access to current_app and g: You can access current_app, which points to the app in the context, and g, a special object for storing data during a request.
+    # Handles Database Operations: Since the database depends on the app configuration (SQLAlchemy settings, for example), using app.app_context() ensures that the database functions properly inside the context.
 with app.app_context():
     db.create_all()
 
@@ -176,161 +181,140 @@ def fill_tables():
 
 
 
-    new_service_1 = Services(name="room cleaning" , category_id = 1 , price=1000 , description ="cleaning of rooms" ,
+    new_service_1 = Services(name="room cleaning" , category_id = 1 , price=1000 , description ="cleaning of rooms" , location = "ambala" ,pincode = 134023 ,
                          duration=1)
     new_service_2 = Services(name="home cleaning" , category_id = 1 , price=3000 , description ="cleaning of home" ,
-                         duration=4)
+                         duration=4 , location ="ambala" , pincode = 111111)
     new_service_3 = Services(name="ofiice cleaning" , category_id = 1 , price=2000 , description ="cleaning of office" ,
-                         duration=1)
+                         duration=1 , location ="ambala" , pincode = 111111 )
     new_service_4 = Services(name="toilet cleaning" , category_id = 1 , price=500 , description ="cleaning of toilet" ,
-                         duration=1)
+                         duration=1 , location ="ambala" , pincode = 111111 )
     new_service_5 = Services(name="Ac Repair & Service" , category_id = 2 , price=1000 , description ="Ac Repair & Service" ,
-                         duration=1)
+                         duration=1 , location ="ambala" , pincode = 111111 )
     new_service_6 = Services(name="Gyser Repair & Service" , category_id = 2 , price=1000 , description ="Gyser Repair & Service" ,
-                         duration=1)
+                         duration=1 , location ="ambala" , pincode = 111111 )
     new_service_7 = Services(name="Pipe fitings" , category_id = 3 , price=1000 , description ="Pipe fitings" ,
-                         duration=1)
+                         duration=1 , location ="chennai" , pincode = 600001 )
     new_service_8 = Services(name="plumbing related" , category_id = 3 , price=1000 , description ="plumbing related" ,
-                         duration=1)
+                         duration=1 , location ="chennai" , pincode = 600001 )
     new_service_9 = Services(name="wall repair" , category_id = 4 , price=1000 , description ="repairing of walls" ,
-                         duration=1)
+                         duration=1 , location ="connaught place" , pincode = 110000 )
     db.session.add_all([new_service_1,new_service_2,new_service_3,new_service_4,new_service_5,new_service_6,new_service_7,new_service_8,new_service_9])
     db.session.commit()
 
     new_services = [
         # Cleaning Services
-        Services(name="deep cleaning", category_id=1, price=5000, description="thorough cleaning of the entire home", duration=3),
-        Services(name="window cleaning", category_id=1, price=800, description="cleaning windows inside and out", duration=2),
-        Services(name="carpet cleaning", category_id=1, price=1500, description="professional carpet cleaning", duration=2),
+        Services(name="deep cleaning", category_id=1, price=5000, description="thorough cleaning of the entire home", duration=3, location ="ambala" , pincode = 111111 ),
+        Services(name="window cleaning", category_id=1, price=800, description="cleaning windows inside and out", duration=2, location ="ambala" , pincode = 111111 ),
+        Services(name="carpet cleaning", category_id=1, price=1500, description="professional carpet cleaning", duration=2, location ="ambala" , pincode = 111111 ),
         
         # Electrical Services
-        Services(name="wiring installation", category_id=2, price=3000, description="new wiring for your home", duration=4),
-        Services(name="lighting installation", category_id=2, price=1200, description="installation of indoor and outdoor lighting", duration=2),
-        Services(name="outlet repair", category_id=2, price=500, description="repair faulty electrical outlets", duration=1),
+        Services(name="wiring installation", category_id=2, price=3000, description="new wiring for your home", duration=4, location ="chandigarh" , pincode = 160017 ),
+        Services(name="lighting installation", category_id=2, price=1200, description="installation of indoor and outdoor lighting", duration=2, location ="chandigarh" , pincode = 160017 ),
+        Services(name="outlet repair", category_id=2, price=500, description="repair faulty electrical outlets", duration=1, location ="chandigarh" , pincode = 160017 ),
         
         # Plumbing Services
-        Services(name="faucet installation", category_id=3, price=700, description="installing new faucets", duration=1),
-        Services(name="drain cleaning", category_id=3, price=1000, description="cleaning clogged drains", duration=1),
-        Services(name="water heater installation", category_id=3, price=2500, description="installing a new water heater", duration=3),
+        Services(name="faucet installation", category_id=3, price=700, description="installing new faucets", duration=1, location ="chennai" , pincode = 600001 ),
+        Services(name="drain cleaning", category_id=3, price=1000, description="cleaning clogged drains", duration=1, location ="ambala" , pincode = 111111 ),
+        Services(name="water heater installation", category_id=3, price=2500, description="installing a new water heater", duration=3, location ="connaught place" , pincode = 110000 ),
         
         # Maintenance Services
-        Services(name="home maintenance checkup", category_id=4, price=1500, description="annual maintenance check for your home", duration=2),
-        Services(name="furniture assembly", category_id=4, price=800, description="assembling furniture from flat-pack", duration=1),
+        Services(name="home maintenance checkup", category_id=4, price=1500, description="annual maintenance check for your home", duration=2, location ="connaught place" , pincode = 110000 ),
+        Services(name="furniture assembly", category_id=4, price=800, description="assembling furniture from flat-pack", duration=1, location ="ambala" , pincode = 111111 ),
         
         # Health & Wellness Services
-        Services(name="personal training", category_id=5, price=1500, description="one-on-one personal training sessions", duration=1),
-        Services(name="yoga classes", category_id=5, price=1200, description="group yoga sessions", duration=1.5),
+        Services(name="personal training", category_id=5, price=1500, description="one-on-one personal training sessions", duration=1, location ="ambala" , pincode = 111111 ),
+        Services(name="yoga classes", category_id=5, price=1200, description="group yoga sessions", duration=1.5, location ="ambala" , pincode = 111111 ),
         
         # Beauty & Personal Care Services
-        Services(name="haircut & styling", category_id=6, price=500, description="professional haircut and styling", duration=1),
-        Services(name="makeup services", category_id=6, price=1200, description="professional makeup for events", duration=2),
+        Services(name="haircut & styling", category_id=6, price=500, description="professional haircut and styling", duration=1, location ="ambala" , pincode = 111111 ),
+        Services(name="makeup services", category_id=6, price=1200, description="professional makeup for events", duration=2, location ="ambala" , pincode = 111111 ),
         
         # Automotive Services
-        Services(name="car wash", category_id=7, price=400, description="full exterior and interior car wash", duration=1),
-        Services(name="oil change", category_id=7, price=1000, description="oil change and filter replacement", duration=1),
+        Services(name="car wash", category_id=7, price=400, description="full exterior and interior car wash", duration=1, location ="ambala" , pincode = 111111 ),
+        Services(name="oil change", category_id=7, price=1000, description="oil change and filter replacement", duration=1, location ="ambala" , pincode = 111111 ),
         
         # Technology Support Services
-        Services(name="computer setup", category_id=8, price=1500, description="setting up new computers and peripherals", duration=2),
-        Services(name="virus removal", category_id=8, price=800, description="removing viruses and malware from computers", duration=1),
+        Services(name="computer setup", category_id=8, price=1500, description="setting up new computers and peripherals", duration=2, location ="ambala" , pincode = 111111 ),
+        Services(name="virus removal", category_id=8, price=800, description="removing viruses and malware from computers", duration=1, location ="ambala" , pincode = 111111 ),
 
         # More services can be added similarly...
-         Services(name="interior painting", category_id=9, price=3500, description="painting the interior of the home", duration=4),
-        Services(name="flooring installation", category_id=9, price=4000, description="installing hardwood, laminate, or tile flooring", duration=5),
+         Services(name="interior painting", category_id=9, price=3500, description="painting the interior of the home", duration=4, location ="ambala" , pincode = 111111 ),
+        Services(name="flooring installation", category_id=9, price=4000, description="installing hardwood, laminate, or tile flooring", duration=5, location ="ambala" , pincode = 111111 ),
 
         # Education & Tutoring Services
-        Services(name="online tutoring", category_id=10, price=800, description="one-on-one online tutoring sessions", duration=1),
-        Services(name="homework help", category_id=10, price=600, description="assistance with homework and assignments", duration=1),
+        Services(name="online tutoring", category_id=10, price=800, description="one-on-one online tutoring sessions", duration=1, location ="ambala" , pincode = 111111 ),
+        Services(name="homework help", category_id=10, price=600, description="assistance with homework and assignments", duration=1, location ="ambala" , pincode = 111111 ),
 
         # Professional Services
-        Services(name="legal consultation", category_id=11, price=3000, description="consultation with a legal expert", duration=1),
-        Services(name="financial planning", category_id=11, price=2000, description="personal financial planning services", duration=2),
+        Services(name="legal consultation", category_id=11, price=3000, description="consultation with a legal expert", duration=1, location ="ambala" , pincode = 111111 ),
+        Services(name="financial planning", category_id=11, price=2000, description="personal financial planning services", duration=2, location ="ambala" , pincode = 111111 ),
 
         # Pest Control Services
-        Services(name="general pest control", category_id=12, price=1500, description="treatment for common pests", duration=2),
-        Services(name="termite inspection", category_id=12, price=2000, description="inspection for termite infestations", duration=1.5),
+        Services(name="general pest control", category_id=12, price=1500, description="treatment for common pests", duration=2, location ="ambala" , pincode = 111111 ),
+        Services(name="termite inspection", category_id=12, price=2000, description="inspection for termite infestations", duration=1.5, location ="ambala" , pincode = 111111 ),
 
         # Pet Care Services
-        Services(name="dog walking", category_id=13, price=500, description="daily dog walking services", duration=1),
-        Services(name="pet grooming", category_id=13, price=1200, description="grooming services for pets", duration=1.5),
+        Services(name="dog walking", category_id=13, price=500, description="daily dog walking services", duration=1, location ="ambala" , pincode = 111111 ),
+        Services(name="pet grooming", category_id=13, price=1200, description="grooming services for pets", duration=1.5, location ="ambala" , pincode = 111111 ),
 
         # Event Services
-        Services(name="event planning", category_id=14, price=5000, description="complete event planning services", duration=8),
-        Services(name="catering services", category_id=14, price=3000, description="catering for events and parties", duration=3),
+        Services(name="event planning", category_id=14, price=5000, description="complete event planning services", duration=8, location ="ambala" , pincode = 111111 ),
+        Services(name="catering services", category_id=14, price=3000, description="catering for events and parties", duration=3, location ="ambala" , pincode = 111111 ),
 
         # Fitness & Sports Services
-        Services(name="personal training sessions", category_id=15, price=1500, description="personal training for fitness goals", duration=1),
-        Services(name="group fitness classes", category_id=15, price=800, description="join group fitness sessions", duration=1),
+        Services(name="personal training sessions", category_id=15, price=1500, description="personal training for fitness goals", duration=1, location ="ambala" , pincode = 111111 ),
+        Services(name="group fitness classes", category_id=15, price=800, description="join group fitness sessions", duration=1, location ="ambala" , pincode = 111111 ),
 
         # Moving & Relocation Services
-        Services(name="local moving", category_id=16, price=3000, description="moving services within the local area", duration=4),
-        Services(name="packing services", category_id=16, price=1200, description="packing services for relocations", duration=2),
+        Services(name="local moving", category_id=16, price=3000, description="moving services within the local area", duration=4, location ="ambala" , pincode = 111111 ),
+        Services(name="packing services", category_id=16, price=1200, description="packing services for relocations", duration=2, location ="ambala" , pincode = 111111 ),
 
         # Appliance Repair Services
-        Services(name="washing machine repair", category_id=17, price=1500, description="repair services for washing machines", duration=2),
-        Services(name="refrigerator repair", category_id=17, price=2000, description="repair services for refrigerators", duration=3),
+        Services(name="washing machine repair", category_id=17, price=1500, description="repair services for washing machines", duration=2, location ="ambala" , pincode = 111111 ),
+        Services(name="refrigerator repair", category_id=17, price=2000, description="repair services for refrigerators", duration=3, location ="ambala" , pincode = 111111 ),
 
         # Security Services
-        Services(name="home security installation", category_id=18, price=2500, description="installation of home security systems", duration=3),
-        Services(name="security patrol services", category_id=18, price=3000, description="security patrol for properties", duration=4),
+        Services(name="home security installation", category_id=18, price=2500, description="installation of home security systems", duration=3, location ="ambala" , pincode = 111111 ),
+        Services(name="security patrol services", category_id=18, price=3000, description="security patrol for properties", duration=4, location ="ambala" , pincode = 111111 ),
 
         # Childcare Services
-        Services(name="nanny services", category_id=19, price=2000, description="full-time or part-time nanny services", duration=8),
-        Services(name="babysitting services", category_id=19, price=800, description="occasional babysitting services", duration=2),
+        Services(name="nanny services", category_id=19, price=2000, description="full-time or part-time nanny services", duration=8, location ="ambala" , pincode = 111111 ),
+        Services(name="babysitting services", category_id=19, price=800, description="occasional babysitting services", duration=2, location ="ambala" , pincode = 111111 ),
 
         # Gardening & Landscaping Services
-        Services(name="lawn care", category_id=20, price=1000, description="care and maintenance of lawns", duration=2),
-        Services(name="landscaping design", category_id=20, price=3000, description="designing and installing landscapes", duration=4),
+        Services(name="lawn care", category_id=20, price=1000, description="care and maintenance of lawns", duration=2, location ="ambala" , pincode = 111111 ),
+        Services(name="landscaping design", category_id=20, price=3000, description="designing and installing landscapes", duration=4, location ="ambala" , pincode = 111111 ),
 
         # Legal & Documentation Services
         Services(name="will writing", category_id=21, price=1500, description="writing legal wills", duration=2),
-        Services(name="contract drafting", category_id=21, price=2500, description="drafting contracts and agreements", duration=3),
+        Services(name="contract drafting", category_id=21, price=2500, description="drafting contracts and agreements", duration=3, location ="ambala" , pincode = 111111 ),
 
         # Photography & Videography Services
-        Services(name="event photography", category_id=22, price=4000, description="photography for events", duration=4),
-        Services(name="video editing services", category_id=22, price=2500, description="editing video content for clients", duration=3),
+        Services(name="event photography", category_id=22, price=4000, description="photography for events", duration=4, location ="ambala" , pincode = 111111 ),
+        Services(name="video editing services", category_id=22, price=2500, description="editing video content for clients", duration=3, location ="ambala" , pincode = 111111 ),
 
         # Transportation & Delivery Services
-        Services(name="parcel delivery", category_id=23, price=800, description="delivery of parcels and packages", duration=1),
-        Services(name="airport transfer services", category_id=23, price=2500, description="transfers to and from the airport", duration=2),
+        Services(name="parcel delivery", category_id=23, price=800, description="delivery of parcels and packages", duration=1, location ="ambala" , pincode = 111111 ),
+        Services(name="airport transfer services", category_id=23, price=2500, description="transfers to and from the airport", duration=2, location ="ambala" , pincode = 111111 ),
 
         # Waste Management Services
-        Services(name="garbage collection", category_id=24, price=1000, description="regular garbage collection services", duration=2),
-        Services(name="recycling services", category_id=24, price=800, description="recycling of various materials", duration=1),
+        Services(name="garbage collection", category_id=24, price=1000, description="regular garbage collection services", duration=2, location ="ambala" , pincode = 111111 ),
+        Services(name="recycling services", category_id=24, price=800, description="recycling of various materials", duration=1, location ="ambala" , pincode = 111111 ),
 
         # Handyman Services
-        Services(name="furniture repair", category_id=25, price=1200, description="repairing and restoring furniture", duration=2),
-        Services(name="small home repairs", category_id=25, price=800, description="handling minor repairs around the house", duration=1)
+        Services(name="furniture repair", category_id=25, price=1200, description="repairing and restoring furniture", duration=2, location ="ambala" , pincode = 111111 ),
+        Services(name="small home repairs", category_id=25, price=800, description="handling minor repairs around the house", duration=1, location ="ambala" , pincode = 111111 )
 
     ]
 
     db.session.add_all(new_services)
     db.session.commit()
-
-
-
-    id=uuid.uuid4()
-    customer1 = User(uuid = str(id) ,email="c1@gmail.com" , password = "1234" , firstname="c1", lastname="c1",
-                                address="address" , pincode="111111", phone_number=9138394488
-                    ,role_id = 3  ,profile_image= None)
     
-    id1=uuid.uuid4()
-    professional1 = User(uuid = str(id1) ,email="p1@gmail.com" , password = "1234" , firstname="p1", lastname="p1",
-                            address="address" , pincode="111111", phone_number=8708063057
-                            ,role_id = 2 ,profile_image= None )
-                    
-    professional_details= Professional(uuid=str(id1), skill="cleaning" , experience=1  )
-    
-    id2=uuid.uuid4()
-    admin= User(uuid = str(id2) ,email="admin@gmail.com" , password = "1111" , firstname="admin", lastname="admin",
-                                address="address" , pincode="111111", phone_number=1234567890
-                    ,role_id = 1 ,profile_image= None )
-    db.session.add_all([customer1 , admin , professional1,professional_details ] )
-    db.session.commit()
-    
-    return "done"
+    return redirect("/")
 
 # Configuration for file uploads
-UPLOAD_FOLDER = 'uploads/cv_files'  # Directory to save uploaded CVs
+UPLOAD_FOLDER = 'static/uploads/cv_files'   # Directory to save uploaded CVs 
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -338,9 +322,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
 #-------------------------------
-
 @app.route("/" , methods= ["GET"])
 def home():
     categories=ServiceCategory.query.all()
@@ -384,8 +366,6 @@ def register():
 
     return render_template("/customer/customer_registeration_form.html")
     
-
-
 # REGISTER SERVICE PROFESSIONAL ON A NEW PAGE:  professional/register
 @app.route("/professional/register" , methods=["GET" , "POST"])
 def professional_register():
@@ -424,8 +404,8 @@ def professional_register():
             return redirect(url_for("professional_register"))
 
         if cv_file and allowed_file(cv_file.filename):
-            filename = secure_filename(cv_file.filename+'id')
-            cv_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            filename = secure_filename(cv_file.filename)
+            cv_path = app.config['UPLOAD_FOLDER']+"/"+ filename  
             cv_file.save(cv_path)
         else:
             flash("Invalid CV file. Please upload a PDF, DOC, or DOCX file.", "danger")
@@ -450,8 +430,6 @@ def professional_register():
         return redirect(url_for("login")) # REDIRECT TO  LOGIN PAGE !
     categories=ServiceCategory.query.all()
     return render_template("/professional/professional_registeration_form.html" , categories=categories)  # make a seperate register page for Professional
-
-
 
 # common for Admin , Cust and Prof
 @app.route("/login" , methods =["GET" , "POST"])
@@ -519,7 +497,56 @@ def signout():
     flash("You are Signed Out" , "info" )
     return redirect('/')
 
+@app.route("/summary",methods=["GET","POST"])
+def summary():
+    if "role_id" in session:
+        if(session["role_id"]==2):
+            prof_id = session["uuid"]
+            service_count_plot = generate_service_count_chart(prof_id)
+            service_count_plot.savefig(f"./static/images/professional_{prof_id}_service_count.jpeg")
+            service_count_plot.clf()
 
+            # Generate Average Ratings Pie Chart
+            avg_rating_plot = generate_avg_rating_chart(prof_id)
+            avg_rating_plot.savefig(f"./static/images/professional_{prof_id}_avg_rating.jpeg")
+            avg_rating_plot.clf()
+            generate_avg_rating_by_skill_plot = generate_avg_rating_by_skill_chart(prof_id)
+            generate_avg_rating_by_skill_plot.savefig(f"./static/images/professional_{prof_id}_service_avg_rating.jpeg")
+            generate_avg_rating_by_skill_plot.clf()
+
+            service_history=Bookings.query.filter(Bookings.professional_id == prof_id, Bookings.status != "accepted" ).all()
+            return render_template("/professional/professional_summary.html",service_history=service_history , prof_id=prof_id)
+        if(session["role_id"] ==3 ):
+            customer_id = session["uuid"]  
+           
+            customer_booking = generate_customer_booking_chart(customer_id)
+            customer_booking.savefig(f"./static/images/customer_booking_{customer_id}.jpeg")
+            customer_booking.clf()
+
+            service_history=Bookings.query.filter(Bookings.cust_id == customer_id, Bookings.status=="closed" ).all()
+            return render_template("/customer/customer_summary.html" , customer_id=customer_id)
+        if(session["role_id"]==1):
+            return redirect("/admin-summary")
+    return redirect("/") 
+
+# aboutus route
+@app.route("/aboutus")
+def aboutus():
+    return render_template("/aboutus.html")
+
+# complaints count increase
+@app.route("/complaint/<string:report_id>",methods=["GET","POST"])
+def complaints(report_id):
+    if "role_id" in session:
+        user=User.query.get(report_id)
+        if user:
+            user.complaints_count =user.complaints_count +1
+            db.session.commit()
+            flash("Reported Successfully" , "success" )
+    else:
+        flash("An Error Occured")
+    return redirect('/')
+            
 @app.route("/professional/dashboard")
 def professional_dashboard():
     if(session):
@@ -528,7 +555,7 @@ def professional_dashboard():
             active_services = Bookings.query.join(Services).join(ServiceCategory).filter(
                 ServiceCategory.name == professional.skill ,Bookings.status=="active").all()
             service_history=Bookings.query.join(Services).join(ServiceCategory).filter(
-                Bookings.professional_id ==professional.uuid, Bookings.status=="closed" ).all()
+                Bookings.professional_id ==professional.uuid, Bookings.status!="accepted"  ).all()
             assigned_services=Bookings.query.filter(
                 Bookings.professional_id ==professional.uuid, Bookings.status=="accepted"  ).all()
 
@@ -635,10 +662,6 @@ def customer_dashboard():
 
             professionals=Professional.query.filter( (Professional.active_booking_count<3) & (Professional.status == True )).all()
 
-            print( )
-            print(len(professionals))
-            for professional in professionals:
-                print(professional.user.firstname)
             return render_template("/customer/customer_dashboard.html", services=services ,all_bookings=all_bookings, upcoming_bookings=upcoming_bookings ,categories=categories ,professionals=professionals)
         else:
             flash("User not found", "error")
@@ -649,7 +672,6 @@ def customer_dashboard():
     flash("You are not signed in", "error")
     return redirect('/')
     
-
 @app.route("/viewservice" ,methods=["GET","POST"])
 def view_service():
     services = Services.query.filter(Services.status == True ).order_by(Services.category_id).all()
@@ -705,7 +727,6 @@ def view_service():
         # Execute the query
         services = query.all()
     return render_template('view_service.html', services=services)
-
 
 @app.route('/book_service/<int:service_id>'  , methods=["POST"])
 def book_service(service_id):
@@ -806,7 +827,6 @@ def close_booking(booking_id):
         flash("Booking Not Found" ,"error")
         return  redirect("/customer/dashboard")
 
-
 @app.route('/cancel_booking/<int:booking_id>' ,methods=["GET","POST"])  
 def cancel_booking(booking_id):
     feedback = request.form.get("feedback")
@@ -832,7 +852,6 @@ def cancel_booking(booking_id):
                 return redirect("/admin/manage-bookings")
     return redirect("/customer/dashboard")
 
-
 @app.route("/user_profile", methods=["GET","POST"])
 def user_profile():
     user = User.query.get(session['uuid'])
@@ -843,7 +862,6 @@ def user_profile():
 
     return render_template("/profile.html" , user=user )    
 
-
 @app.route("/admin/dashboard"  , methods=["GET"])
 def admin_dashboard():
     
@@ -853,8 +871,22 @@ def admin_dashboard():
         total_bookings = Bookings.query.count()
         total_services=Services.query.filter(Services.status==True).count()
         total_revenue = db.session.query(db.func.sum(Services.price)).join(Bookings, Services.id == Bookings.service_id).filter(Bookings.status == "closed").scalar() or 0
+         # Generate the chart and save it
+        plot = get_bookings_summary()
+        plot.savefig("./static/images/bookings_summary.jpeg")
+        plot.clf()  # Clear the figure after saving
         return render_template("/admin/dashboard_overview.html" , total_customers=total_customers, total_professionals=total_professionals ,total_bookings=total_bookings , total_services=total_services,total_revenue=total_revenue ) 
     
+    flash("only admins are allowed" , "error")
+    return redirect("/")
+
+# view reports for admin
+@app.route("/admin/reports" , methods=["GET"])
+def admin_reports():
+    if 'role_id' in session and session['role_id'] == 1:
+        customers = User.query.filter(User.role_id == 3).all()
+        professionals=Professional.query.all() 
+        return render_template("/admin/reports.html", customers=customers , professionals=professionals )
     flash("only admins are allowed" , "error")
     return redirect("/")
 
@@ -911,7 +943,6 @@ def manage_users():
     categories = ServiceCategory.query.all()
     return render_template("/admin/manage_users.html",  customers=customers, professionals=professionals , categories=categories) 
 
-
 @app.route('/edit-user/<string:user_id>', methods=['POST'])
 def edit_user(user_id):
     user = User.query.get(user_id)
@@ -944,9 +975,6 @@ def edit_user(user_id):
 
     return redirect(url_for('manage_users') if session.get("role_id") == 1 else "/user_profile")
 
-    
-
-
 @app.route('/admin/toggle-status/<string:id>', methods=["GET" , 'POST'])
 def toggle_status(id):
     if 'role_id' in session and session['role_id'] == 1:
@@ -978,8 +1006,6 @@ def toggle_status(id):
         return redirect(url_for('manage_users'))
         
     return redirect(url_for('manage_users'))
-
-
 
 @app.route('/admin/delete-user/<string:user_id>', methods=["GET",'POST']) 
 def delete_user(user_id):
@@ -1085,7 +1111,7 @@ def delete_category(id):
                 db.session.delete(category)
                 db.session.commit()
                 
-                flash('category deleted successfully!', 'success')
+                flash('category and its services deleted successfully!', 'success')
             else:
                 flash('You are not authorized to delete this category.', 'danger')
         else:
@@ -1138,13 +1164,13 @@ def manage_services():
             query = query.order_by(Services.pincode.asc())
             if search_query.isdigit():
                 query = query.filter(Services.pincode == int(search_query))
-            else:
-                query = query.filter(Services.name.ilike(f"%{search_query}%")).order_by(Services.pincode.asc())
         elif filter_by == "category":
             query = query.join(ServiceCategory).filter(ServiceCategory.name.ilike(f"%{search_query}%"))
         elif filter_by == "price":
             if search_query.isdigit():
                 query = query.filter(Services.price == int(search_query))
+            else:
+                query = query.filter(Services.name.ilike(f"%{search_query}%")).order_by(Services.price.asc())
         elif filter_by == "id":
             if search_query.isdigit():
                 query = query.filter(Services.id == int(search_query))
@@ -1208,6 +1234,165 @@ def add_service():
         flash("Service Added Successfully" , "success")
         return(redirect("/admin/manage-services"))
     return render_template("/admin/manage_services.html")
+
+@app.route("/admin-summary")
+def admin_summary():
+    if ("role_id" not in session or session["role_id"] != 1 ):
+        flash('You do not have permission to perform this action', 'danger')
+        return redirect("/")
+    # Generate the chart and save it
+    plot = get_bookings_summary()
+    plot.savefig("./static/images/bookings_summary.jpeg")
+    plot.clf()  # Clear the figure after saving
+    return render_template("/admin/admin_summary.html")
+
+def get_bookings_summary():
+    
+    ## Fetch bookings data
+    bookings = (
+        db.session.query(Services.name, db.func.count(Bookings.id))
+        .join(Bookings, Bookings.service_id == Services.id)
+        .filter(Bookings.status == "closed")
+        .group_by(Services.id)
+        .order_by(Services.id)
+        .all()
+    )
+
+    # Separate service names and booking counts into two lists
+    services = [booking[0] for booking in bookings]  # Service names
+    booking_counts = [booking[1] for booking in bookings]  # Booking counts
+    # Create a bar chart
+    plt.bar(services, booking_counts, color="skyblue", width=0.4)
+    plt.title("Bookings per Service")
+    plt.xlabel("Service")
+    plt.ylabel("Number of Bookings")
+    plt.xticks(rotation=45, ha='right')  # Rotate labels 45 degrees and align to the right
+    plt.tight_layout()  # Adjust layout to prevent clipping
+    return plt
+
+def generate_avg_rating_by_skill_chart(prof_id):
+    # Fetch the professional's skill
+    professional = Professional.query.filter_by(uuid=prof_id).first()
+    if not professional:
+        return None
+
+    skill = professional.skill
+
+    # Fetch services under the matching category
+    services = (
+        Services.query.join(ServiceCategory, Services.category_id == ServiceCategory.id)
+        .filter(ServiceCategory.name == skill)
+        .all()
+    )
+    
+    # Calculate average ratings for each service
+    avg_ratings = {}
+    for service in services:
+        # Fetch bookings for this service
+        bookings = Bookings.query.filter_by(service_id=service.id, status="closed").all()
+        if bookings:
+            ratings = [booking.rating for booking in bookings if booking.rating > 0]
+            if ratings:
+                avg_ratings[service.name] = sum(ratings) / len(ratings)
+
+    # Plot the bar chart
+    labels = list(avg_ratings.keys())
+    values = list(avg_ratings.values())
+
+    plt.figure(figsize=(5, 4))
+    bar_width = 0.5  # Set narrower bar width
+    bars = plt.bar(labels, values, width=bar_width, color='skyblue')
+
+    # Add average rating annotations on top of bars
+    for bar, value in zip(bars, values):
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,  # X-position
+            bar.get_height() + 0.05,           # Y-position
+            f"{value:.1f}",                    # Text (formatted to 1 decimal)
+            ha="center", fontsize=10
+        )
+
+    plt.xlabel("Service Name")
+    plt.ylabel("Average Rating")
+    plt.title(f"Average Ratings for Services in {skill} Category")
+    # plt.xticks(rotation=0, ha="right")
+    plt.tight_layout()
+
+    return plt
+
+
+def generate_service_count_chart(prof_id):
+    bookings = (
+        Bookings.query.filter_by(professional_id=prof_id, status="closed")
+        .join(Services, Bookings.service_id == Services.id)
+        .add_columns(Services.name)
+        .all()
+    )
+
+    service_counts = {}
+    for booking in bookings:
+        service_name = booking.name
+        service_counts[service_name] = service_counts.get(service_name, 0) + 1
+
+    x_names = list(service_counts.keys())
+    y_counts = list(service_counts.values())
+
+    plt.bar(x_names, y_counts, color="blue", width=0.4)
+    plt.title("Service Count")
+    plt.xlabel("Service")
+    plt.ylabel("Count")
+    plt.xticks(rotation=15, ha="right")
+    return plt
+
+def generate_avg_rating_chart(prof_id):
+    bookings = (
+        Bookings.query.filter_by(professional_id=prof_id, status="closed")
+        .join(Services, Bookings.service_id == Services.id)
+        .add_columns(Services.name, Bookings.rating)
+        .all()
+    )
+
+    ratings = {}
+    for booking in bookings:
+        service_name = booking.name
+        if service_name not in ratings:
+            ratings[service_name] = []
+        ratings[service_name].append(booking.rating)
+
+    avg_ratings = {name: sum(ratings[name]) / len(ratings[name]) for name in ratings if ratings[name]}
+
+    labels = list(avg_ratings.keys())
+    sizes = list(avg_ratings.values())
+
+    plt.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=140)
+    plt.title("Average Ratings")
+    return plt
+
+def generate_customer_booking_chart(customer_id):
+    bookings = (
+        Bookings.query.filter_by(cust_id=customer_id)
+        .add_columns(Bookings.status)
+        .all() 
+    )
+    summary = {"active": 0, "closed": 0, "canceled": 0}
+
+    for booking in bookings:
+        if booking.status in summary:
+            summary[booking.status] += 1
+
+    x_status = list(summary.keys())
+    y_counts = list(summary.values())
+
+    plt.bar(x_status, y_counts, color=["skyblue", "lightgreen", "salmon"], width=0.4)
+    plt.title("Customer Bookings Summary")
+    plt.xlabel("Status")
+    plt.ylabel("Count")
+
+    # chart_path = f"static/images/customer_{customer_id}_booking_summary.jpeg"
+    # plt.savefig(chart_path)
+    # plt.close()
+    return plt
+
 
 @app.route('/admin/api/schema', methods=['GET'])
 def get_database_schema():

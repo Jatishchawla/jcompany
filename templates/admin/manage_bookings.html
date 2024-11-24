@@ -199,6 +199,7 @@
                         <th scope="col">Date Of Request</th>
                         <th scope="col">Status</th>
                         <th scope="col">rating</th>
+                        <th scope="col">feedback</th>
                         <th scope="col">Actions</th>
                     </tr>
                 </thead>
@@ -212,6 +213,7 @@
                             <td>{{ booking.request_date }}</td>
                             <td>{{ booking.status}}</td>
                             <td>{{ booking.rating }} /5</td>
+                            <td>{{ booking.feedback }}</td>
                             <td>
                                 <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#bookingModal{{ booking.id }}">
                                     View/Edit
