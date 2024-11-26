@@ -39,8 +39,8 @@
                             <th>Price</th>
                             <th>Duration</th>
                             <!-- <th>status</th> -->
+                            <th>Request Date</th>
                             <th>Customer Name</th>
-                            <th>Booking Date</th>
                             <th>Address</th>
                             <th>Pincode</th>
                             <th>Actions</th>
@@ -58,10 +58,16 @@
                                     <td>Rs {{ (booking.service.price/100)*80  }}</td>
                                     <td>{{ booking.service.duration }} hrs</td>
                                     <!-- <td>{{booking.status}}</td> -->
-                                    <td>{{booking.customer.firstname}} {{booking.customer.lastname}}</td>
                                     <td>{{booking.request_date}}</td>
+                                    {%if booking.customer %}
+                                    <td>{{booking.customer.firstname}} {{booking.customer.lastname}}</td>
                                     <td>{{booking.customer.address}}</td>
                                     <td>{{booking.customer.pincode}}</td>
+                                    {%else%}
+                                    <td>Not Available</td>
+                                    <td>Not Available</td>
+                                    <td>Not Available</td>
+                                    {%endif%}
                                     <td>
                                         <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#bookingModal{{ booking.id }}">
                                             Accept
@@ -85,14 +91,20 @@
                                             <p><strong>Category:</strong> {{ booking.service.category.name }}</p>
                                             <p><strong>Service Details</strong> {{booking.service.description}}</p>
                                             <p><strong>Duration:</strong> {{ booking.service.duration }}</p>
+                                            <p><strong>Request Date</strong> {{ booking.request_date }}</p>
                                             <p><strong>Price:</strong> Rs {{ (booking.service.price/100)*80  }}</p>                
                                             <!-- professional Details -->
                                             <hr>
                                             <h6>Customer Information</h6>
+                                            {%if booking.customer %}
                                             <p><strong>Customer Name:</strong> {{ booking.customer.firstname }} {{booking.customer.lastname}}</p>
                                             <p><strong>Customer Phone Number:</strong> {{ booking.customer.phone_number }}</p>
                                             <p><strong>Customer Address:</strong> {{ booking.customer.address }}</p>
                                             <p><strong>Address Pincode:</strong> {{ booking.customer.pincode }}</p>
+                                            {%else%}
+                                            <p><strong>Customer Details are not avialable</strong></p>
+                                            {%endif%}
+
                                         </div>
                                         <div class="modal-footer">
                                             <form action="{{ url_for('accept_booking', booking_id=booking.id ,professional_id=professional.user.uuid ) }}" method="POST">
@@ -129,8 +141,8 @@
                             <th>Price</th>
                             <th>Duration</th>
                             <!-- <th>status</th> -->
+                            <th>Request Date</th>
                             <th>Customer Name</th>
-                            <th>Booking Date</th>
                             <th>Address</th>
                             <th>Pincode</th>
                             <th>Actions</th>
@@ -148,10 +160,16 @@
                                     <td>Rs {{ (booking.service.price/100)*80  }}</td>
                                     <td>{{ booking.service.duration }} hrs</td>
                                     <!-- <td>{{booking.status}}</td> -->
+                                     <td>{{booking.request_date}}</td>
+                                    {%if booking.customer %}
                                     <td>{{booking.customer.firstname}} {{booking.customer.lastname}}</td>
-                                    <td>{{booking.request_date}}</td>
                                     <td>{{booking.customer.address}}</td>
                                     <td>{{booking.customer.pincode}}</td>
+                                    {%else%}
+                                    <td>Not Available</td>
+                                    <td>Not Available</td>
+                                    <td>Not Available</td>
+                                    {%endif%}
                                     <td>
                                         <a href="/reject_booking/{{booking.id}}/{{professional.uuid}}">
                                             <button type="button" class="btn btn-outline-danger btn-sm"  >
@@ -171,7 +189,29 @@
     </div>
 
 
-
+    <!-- Search Bar -->
+     <div class="container mt-2">
+    <form method="GET" action="/professional/dashboard" class="row g-3 mb-3">
+        <div class="col-md-3">
+            <select name="filter" class="form-select" required>
+                <option value="" disabled selected>Select Filter</option>
+                <option value="name" {% if request.args.get('filter') == 'name' %}selected{% endif %}>Name</option>
+                <option type="date"  value="date" {% if request.args.get('filter') == 'date' %}selected{% endif %}>Date</option>
+                <option value="location" {% if request.args.get('filter') == 'address' %}selected{% endif %}>Address</option>
+                <option value="pincode" {% if request.args.get('filter') == 'pincode' %}selected{% endif %}>Pincode</option>
+            </select>
+        </div>
+        <div class="col-md-6">
+            <input type="text" name="query" class="form-control" placeholder="Enter search text" value="{{ request.args.get('query') or search }}" required>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+        <div class="col-md-3">
+            <a href="/professional/dashboard" class="btn btn-secondary btn-sm">Clear</a>
+        </div>
+    </form>
+    </div>
     
     <!-- service hstory table -->
     <div id="mybookings" class="container mt-5 mb-4">
@@ -186,8 +226,6 @@
                             <th>Customer Name</th>
                             <th>Address</th>
                             <th>Service Name</th>
-                            <th>Description</th>
-                            <th>Category</th>
                             <th>Price</th>
                             <th>Duration</th>
                             <th>Status</th>
@@ -202,11 +240,14 @@
                             <tr class="{% if loop.index % 2 == 0 %}table-light {% else %}table-active{% endif %}">
                                     <td>{{loop.index}}</td>
                                     <td>{{booking.request_date}}</td>
+                                    {%if booking.customer %}
                                     <td>{{booking.customer.firstname}} {{booking.customer.lastname}}</td>
                                     <td>{{booking.customer.address}}</td>
-                                    <td>{{ booking.service.description }}</td>
+                                    {%else%}
+                                    <td>Not avialable</td>
+                                    <td>Not avialable</td>
+                                    {%endif%}
                                     <td>{{ booking.service.name }}</td>
-                                    <td>{{ booking.service.category.name }}</td>
                                     <td>Rs {{ (booking.service.price/100)*80  }}</td>
                                     <td>{{ booking.service.duration }} hrs</td>
                                     <td>{{ booking.status }}</td>
@@ -248,8 +289,12 @@
 
                                             <hr>
                                             <!-- professional Details -->
+                                             {%if booking.customer %}
                                             <h6>Customer Information</h6>
                                             <p><strong>Customer Name:</strong> {{ booking.customer.firstname }} {{booking.customer.lastname}}</p>
+                                            {%else%}
+                                            <p>customer details not avialable</p>
+                                            {%endif%}
                                             <!-- <p><strong>Customer Phone Number:</strong> {{ booking.customer.phone_number }}</p>
                                             <p><strong>Customer Address:</strong> {{ booking.customer.address }}</p> -->
                                         </div>

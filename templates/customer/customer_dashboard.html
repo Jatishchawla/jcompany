@@ -25,9 +25,9 @@
         
 
 
-.table td {
-    color: black;
-}
+        .table td {
+            color: black;
+        }
 
         .scrolling-wrapper {
             white-space: nowrap;
@@ -71,6 +71,55 @@
             color: gold;
         }
 
+        .card-horizontal-scroll {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 15px;
+}
+
+.card-horizontal-scroll .category-card {
+    min-width: 200px;
+    max-width: 200px;
+    flex-shrink: 0;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-horizontal-scroll .category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.card-horizontal-scroll .icon-wrapper {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 123, 255, 0.1);
+    border-radius: 50%;
+}
+
+.card-horizontal-scroll .category-name {
+    font-weight: 500;
+    font-size: 1rem;
+    color: #333;
+}
+
+.card-horizontal-scroll a:hover .category-name {
+    color: #007bff;
+}
+
+.circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #eaf4ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
     </style>
 {%endblock%}
 
@@ -82,27 +131,31 @@
     <div class="welcome-section container p-3 mt-5 mb-4 bg-white rounded shadow-sm text-center">
         <h2>Welcome, {{ session.firstname }}!</h2>
         <p>What would you like to do today?</p>
-        <a href="/view_service" class="btn btn-primary mt-2">Book a Service</a>
+        <a href="/viewservice" class="btn btn-primary mt-2">Book a Service</a>
 
-        <div class="container my-4">
-            <h4 style="text-align: left;">Looking For?</h4>
-            <div class="scrolling-wrapper d-flex flex-row overflow-auto">
-                {% for category in categories %}
-                <div class="card category-card text-center m-2" style="width: 150px; height: 150px; flex-shrink: 0;">
-                    <a href="/view_services/{{ category.id }}" class="text-decoration-none text-dark">
-                        <!-- Image section (if you want to add an image later) -->
-                        <!-- <div class="card-img-top" style="height: 80px; background-image: url('{{ url_for('static', filename='/pic/service_pic_6.jpg') }}'); background-size: cover; background-position: center;"></div> -->
-                        
-                        <!-- Card body with centered text -->
-                        <div class="card-body d-flex align-items-center justify-content-center h-100 p-3">
-                            <h6 class="card-title m-0 text-truncate">{{ category.name }}</h6>
+        <div class="container my-5">
+            <h4 style="text-align: left;" class="mb-4">Looking For?</h4>
+            <div class="card-horizontal-scroll">
+                <div class="d-flex flex-row">
+                    {% for category in categories %}
+                    <a href="/viewservice?filter=category&query={{ category.name }}" class="text-decoration-none">
+                        <div class="card mx-2 text-center" style="min-width: 200px; max-width: 200px;">
+                            <div class="card-body">
+                                <div class="circle mx-auto mb-3">
+                                    <!-- Example: Add a Font Awesome icon -->
+                                    <i class="fas fa-tools" style="font-size: 24px; color: #007bff;">{{category.name[0]}}</i>
+                                </div>
+                                <h6 class="card-title text-dark">{{ category.name }}</h6>
+                            </div>
                         </div>
                     </a>
+                    {% endfor %}
                 </div>
-                
-                {% endfor %}
             </div>
         </div>
+        
+        
+
     </div>
 
     <!-- Upcoming and Bookings history -->
@@ -370,6 +423,7 @@
                                 <th>Price</th>
                                 <th>Request Date</th>
                                 <th>Status</th>
+                                <th>Rating</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -384,6 +438,11 @@
                                         <td>Rs {{ booking.service.price }}</td>
                                         <td>{{ booking.request_date }}</td>
                                         <td>{{ booking.status }}</td>
+                                        {%if booking.rating > 0 %}
+                                            <td>{{booking.rating}}/5</td>
+                                        {%else%}
+                                        <td>None</td>    
+                                        {%endif%}
                                         <td>
                                             <!-- <a href="/view_booking/{{ booking.id }}" class="btn btn-outline-secondary btn-sm">View Details</a> -->
                                              
@@ -409,6 +468,10 @@
                                                         <p><strong>Description:</strong> {{booking.service.description}}</p>
                                                         <p><strong>Price: </strong>Rs {{booking.service.price}}</p>
                                                         <p><strong>Duration:</strong> {{booking.service.duration}} hours</p>
+                                                        <p><strong>status:</strong> {{booking.status}}</p>
+                                                        {%if booking.rating > 0 %}
+                                                            <p><strong>rating given</strong> {{booking.rating}}/5</p>
+                                                        {%endif%}
                                                         <p><strong>status:</strong> {{booking.status}}</p>
                                                         <hr>
                                                         {% if booking.professional and booking.professional.user %}

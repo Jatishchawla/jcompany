@@ -15,7 +15,7 @@ import matplotlib
 matplotlib.use('Agg')
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sampledb6.sqlite3"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sampledb1.sqlite3"
 app.config['SECRET_KEY']="key"
 db = SQLAlchemy(app)
 
@@ -79,7 +79,7 @@ class Professional(db.Model):
 class Bookings(db.Model):
     __tablename__   = "Bookings"
     id              = db.Column(db.Integer, primary_key=True , autoincrement=True)
-    cust_id         = db.Column(db.String(), db.ForeignKey("User.uuid") )
+    cust_id         = db.Column(db.String(), db.ForeignKey("User.uuid") , nullable=True )
     professional_id = db.Column(db.String() , db.ForeignKey("Professional.uuid") ) 
     service_id      = db.Column(db.Integer, db.ForeignKey("Services.id") )
     status          = db.Column(db.String(), nullable=False ,default = "active")
@@ -120,8 +120,8 @@ class  ServiceCategory(db.Model):
     __tablename__   = "ServiceCategory"
     id              = db.Column(db.Integer, primary_key=True,  autoincrement=True)
     name            = db.Column(db.String(), nullable=False)  
-    services        = db.relationship("Services" ,  back_populates="category"  ,lazy=True, cascade="all,delete" ) 
     created_at      = db.Column(db.Date ,default = datetime.utcnow )
+    services        = db.relationship("Services" ,  back_populates="category"  ,lazy=True, cascade="all,delete" ) 
     # updated_at      = db.Column(db.Date ,default = datetime.utcnow )
 
     # Create all tables
@@ -363,8 +363,8 @@ def register():
         flash( "REGISTERED SUCCESSFULLY !" ,"success" )
         return redirect(url_for("login")) # REDIRECT TO LOGIN PAGE !
        
-
-    return render_template("/customer/customer_registeration_form.html")
+    categories=ServiceCategory.query.all()
+    return render_template("/customer/customer_registeration_form.html",categories=categories)
     
 # REGISTER SERVICE PROFESSIONAL ON A NEW PAGE:  professional/register
 @app.route("/professional/register" , methods=["GET" , "POST"])
@@ -567,7 +567,27 @@ def professional_dashboard():
             # 1 professional can accept upto 3 request at any point
          
             if professional:
-                # bookings= [booking for booking in Bookings ]
+                filter_by = request.args.get('filter', '').strip()
+                search_query = request.args.get('query', '').strip()
+                if search_query or filter_by:
+
+                    query = Bookings.query.join(Services).join(ServiceCategory).join(User).filter( User.uuid == Bookings.cust_id,
+                        Bookings.professional_id == professional.uuid, Bookings.status!="accepted")
+
+                    if filter_by == "name":
+                        query = query.filter(Services.name.ilike(f"%{search_query}%")).order_by(Services.name.asc())
+                    elif filter_by == "address":
+                        query = query.filter(User.address.ilike(f"%{search_query}%")) 
+                    elif filter_by == "pincode":
+                        if search_query.isdigit():
+                            query = query.filter(User.pincode == int(search_query))
+                    elif filter_by == "date":
+                        query = query.filter(Bookings.request_date == search_query).order_by(Bookings.request_date.asc())
+                    else:
+                        flash("Invalid filter selected.", "danger")
+                        return redirect("/professional/dashboard")
+                    service_history=query.all()
+                
                 return render_template("/professional/professional_dashboard.html",professional=professional  ,today_services=active_services , service_history=service_history, assigned_services=assigned_services)
             else:
                 flash("user not found" , "error")
@@ -636,7 +656,7 @@ def customer_dashboard():
         user = User.query.filter_by(email=session["email"]).first()
 
         if user:
-            categories=ServiceCategory.query.all() 
+            categories=ServiceCategory.query.filter().order_by(ServiceCategory.name.asc()).all()
             services = Services.query.filter(Services.status == True ).limit(8).all()
             all_bookings = [booking for booking in user.customer_bookings ]
             upcoming_bookings = [booking for booking in user.customer_bookings if (not booking.completion_date and booking.status != "canceled")]

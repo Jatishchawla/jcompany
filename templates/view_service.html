@@ -53,6 +53,7 @@
                     <th>Category</th>
                     <th>Price</th>
                     <th>Duration (hrs)</th>
+                    <th>location</th>
                     <th>pincode</th>
                     <th>Rating</th>
                     <th>Actions</th>
@@ -68,6 +69,7 @@
                             <td>{{ service.category.name }}</td>
                             <td>Rs {{ service.price }}</td>
                             <td>{{ service.duration }}</td>
+                            <td>{{ service.location }}</td>
                             <td>{{ service.pincode }}</td>
                             <td>{%if service.rating_sum != 0 and service.rated_services!=0 %}
                                 {{ (service.rating_sum/service.rated_services)|round(2) }}
