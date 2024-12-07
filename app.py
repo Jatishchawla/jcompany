@@ -1,3 +1,4 @@
+#FINAL
 from flask import Flask, render_template, request, redirect ,flash, url_for , jsonify
 from flask import session
 from flask_sqlalchemy import SQLAlchemy
@@ -15,7 +16,7 @@ import matplotlib
 matplotlib.use('Agg')
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sampledb1.sqlite3"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sampledb1.sqlite3" #use sampledb1 for dummy data
 app.config['SECRET_KEY']="key"
 db = SQLAlchemy(app)
 

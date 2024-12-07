@@ -125,3 +125,117 @@ textarea.form-control {
     background-color: #fff5f5;
 }
  */
+
+ .table-responsive {
+    position: relative;
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.table thead th {
+    position: sticky;
+    top: 0;
+    background-color: rgba(0,0,0,0.7);
+    color: #ffffff;
+    z-index: 1;
+}
+
+
+
+.table td {
+    color: black;
+}
+
+.scrolling-wrapper {
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+}
+
+.category-card {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    transition: transform 0.2s;
+}
+
+.category-card:hover {
+    transform: scale(1.05);
+}
+
+.card-title {
+    font-size: 14px;
+    white-space: nowrap;
+    /* overflow: hidden; */
+    text-overflow:inherit ;
+    margin: 0;
+}
+.star-rating {
+direction: rtl;
+display: inline-flex;
+}
+.star-rating input[type="radio"] {
+    display: none;
+}
+.star-rating label {
+    font-size: 1.5em;
+    color: #ccc;
+    cursor: pointer;
+}
+.star-rating input:checked ~ label {
+    color: gold;
+}
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+    color: gold;
+}
+
+.card-horizontal-scroll {
+overflow-x: auto;
+white-space: nowrap;
+padding-bottom: 15px;
+}
+
+.card-horizontal-scroll .category-card {
+min-width: 200px;
+max-width: 200px;
+flex-shrink: 0;
+border: 1px solid #ddd;
+border-radius: 10px;
+transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-horizontal-scroll .category-card:hover {
+transform: translateY(-5px);
+box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.card-horizontal-scroll .icon-wrapper {
+width: 50px;
+height: 50px;
+display: flex;
+align-items: center;
+justify-content: center;
+background-color: rgba(0, 123, 255, 0.1);
+border-radius: 50%;
+}
+
+.card-horizontal-scroll .category-name {
+font-weight: 500;
+font-size: 1rem;
+color: #333;
+}
+
+.card-horizontal-scroll a:hover .category-name {
+color: #007bff;
+}
+
+.circle {
+width: 50px;
+height: 50px;
+border-radius: 50%;
+background-color: #eaf4ff;
+display: flex;
+align-items: center;
+justify-content: center;
+}

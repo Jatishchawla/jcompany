@@ -141,15 +141,32 @@
 
         {%if session['signedin']%}
         <!-- Profile Dropdown -->
-        <div class="dropdown">
-          <img
-            src="https://lh3.googleusercontent.com/lNYd4dMKDTYzZdZi0dJDOvoRwjgzOdo6w5EGB_YKv308rIEEC87NKH6fn0P-JBjZwVjWrCqdErK3LV_-jjunjGEBZ1P8lrbWaRE0vZtH=s192"
-            class="rounded-circle profile-pic"
-            alt="dp"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          />
-          <i class="bi bi-caret-down-fill"></i>
+        <!-- Profile Dropdown -->
+        <div class="dropdown" style="display: inline-flex; align-items: center; position: relative;">
+          <!-- Avatar Circle -->
+          <div style="
+              width: 30px; 
+              height: 30px; 
+              background-color: purple; 
+              color: white; 
+              display: flex; 
+              align-items: center; 
+              justify-content: center; 
+              border-radius: 50%; 
+              font-size: 20px; 
+              font-weight: bold; 
+              text-transform: uppercase;">
+              {{ session["firstname"][0] }}
+          </div>
+
+          <!-- Arrow Icon -->
+          <i class="bi bi-caret-down-fill" style="
+              font-size: 14px; 
+              color: purple; 
+              margin-left: 5px; 
+              display: inline-block;"></i>
+
+          <!-- Dropdown Menu -->
           <ul class="dropdown-menu dropdown-menu-end">
             <li>
               <a class="dropdown-item" 
@@ -159,22 +176,20 @@
               href="/professional/dashboard">Dashboard
               {% elif session["role_id"] ==1 %}
               href="/admin/dashboard">Dashboard
-              {%endif%}
+              {% endif %}
               </a>
             </li>
             <li>
               <a class="dropdown-item" href="/user_profile">View Profile</a>
             </li>
-            
             <li>
               <a class="dropdown-item" 
               {% if session["role_id"] ==3 %}
               href="/customer/dashboard#mybookings">My Bookings
               {% elif session["role_id"] ==2 %}
               href="/professional/dashboard#mybookings">My Bookings
-              {%endif%}
+              {% endif %}
               </a>
-              
             </li>
             <div class="dropdown-divider"></div>
             <li><a class="dropdown-item" href="/signout">Sign out</a></li>
@@ -409,11 +424,11 @@
           <!-- Contact Info -->
           <div class="col-md-3 mb-3">
             <h5>Contact Us</h5>
-            <p><i class="bi bi-telephone-fill"></i> +1 234 567 890</p>
+            <p><i class="bi bi-telephone-fill"></i> +91 9138394488</p>
             <p>
-              <i class="bi bi-envelope-fill"></i> support@householdservice.com
+              <i class="bi bi-envelope-fill"></i> jatishwave@gmail.com.com
             </p>
-            <p><i class="bi bi-geo-alt-fill"></i> 123 Main St, Hometown</p>
+            <p><i class="bi bi-geo-alt-fill"></i> 123 Main st., Pitampura, Delhi</p>
           </div>
 
           <!-- Social Media Links -->

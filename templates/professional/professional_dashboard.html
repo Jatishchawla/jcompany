@@ -26,7 +26,7 @@
 
     <!-- table -->
     <div class="container mt-5 bg-white shadow-sm rounded p-2" >
-        <h2 class="mb-4">Avialable Services</h2>
+        <h2 class="mb-4">Available Services</h2>
             {% if today_services %}
             <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                 <table class="table table-bordered table-hover">
@@ -102,7 +102,7 @@
                                             <p><strong>Customer Address:</strong> {{ booking.customer.address }}</p>
                                             <p><strong>Address Pincode:</strong> {{ booking.customer.pincode }}</p>
                                             {%else%}
-                                            <p><strong>Customer Details are not avialable</strong></p>
+                                            <p><strong>Customer Details are not available</strong></p>
                                             {%endif%}
 
                                         </div>
@@ -120,7 +120,7 @@
                 </table>
             </div>
         {% else %}
-            <p>No Available services available at the moment.</p>
+            <p>No services available at the moment.</p>
         {% endif %}
     </div>
 
@@ -192,10 +192,10 @@
     <!-- Search Bar -->
      <div class="container mt-2">
     <form method="GET" action="/professional/dashboard" class="row g-3 mb-3">
-        <div class="col-md-3">
+        <div class="col-md-3">   
             <select name="filter" class="form-select" required>
                 <option value="" disabled selected>Select Filter</option>
-                <option value="name" {% if request.args.get('filter') == 'name' %}selected{% endif %}>Name</option>
+                <option value="name" {% if request.args.get('filter') == 'name' %}selected{% endif %}>Service Name</option>
                 <option type="date"  value="date" {% if request.args.get('filter') == 'date' %}selected{% endif %}>Date</option>
                 <option value="location" {% if request.args.get('filter') == 'address' %}selected{% endif %}>Address</option>
                 <option value="pincode" {% if request.args.get('filter') == 'pincode' %}selected{% endif %}>Pincode</option>
@@ -244,8 +244,8 @@
                                     <td>{{booking.customer.firstname}} {{booking.customer.lastname}}</td>
                                     <td>{{booking.customer.address}}</td>
                                     {%else%}
-                                    <td>Not avialable</td>
-                                    <td>Not avialable</td>
+                                    <td>Not available</td>
+                                    <td>Not available</td>
                                     {%endif%}
                                     <td>{{ booking.service.name }}</td>
                                     <td>Rs {{ (booking.service.price/100)*80  }}</td>
@@ -293,7 +293,7 @@
                                             <h6>Customer Information</h6>
                                             <p><strong>Customer Name:</strong> {{ booking.customer.firstname }} {{booking.customer.lastname}}</p>
                                             {%else%}
-                                            <p>customer details not avialable</p>
+                                            <p>customer details not available</p>
                                             {%endif%}
                                             <!-- <p><strong>Customer Phone Number:</strong> {{ booking.customer.phone_number }}</p>
                                             <p><strong>Customer Address:</strong> {{ booking.customer.address }}</p> -->
